@@ -26,6 +26,8 @@ public:
     vector<uint> &getinmins();
     uint getnumones(); // return the number of ones in minterm
     uint getsize();
+    void check(); // check the binary
+    bool ischecked();
     ~Binary(); // destructor, free memory allocated for Binary object
 };
 

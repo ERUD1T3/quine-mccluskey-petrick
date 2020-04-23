@@ -211,12 +211,56 @@ vector<Binary> simplify(vector<Binary> unchecked, uint nummins)
     return res;
 }
 
+void Binary::check()
+{
+    this->checked = true;
+}
+
+bool Binary::ischecked() {
+    return this->checked;
+}
+
 bool crossmatch(
     vector<vector<Binary>> &curr,
     vector<vector<Binary>> &prev,
     vector<Binary> &unchecked)
 {
-    // TODO
+
+    curr.resize(prev.size() - 1);
+
+    bool atleastonepairmatched = false;
+
+    for (uint i = 0; i < curr.size(); ++i)
+    {
+        for (uint r1 = 0; r1 < prev[i].size(); ++r1)
+        {
+            for (uint r2 = 0; r2 < prev[i + 1].size(); ++r2)
+            {
+                if (compatible(prev[i][r1], prev[i + 1][r2]))
+                {
+                    atleastonepairmatched = true;
+                    curr[i].push_back(match(prev[i][r1], prev[i + 1][r2]));
+                    prev[i][r1].check();
+                    prev[i + 1][r2].check();
+                }
+            }
+        }
+    }
+
+    for (uint i = 0; i < prev.size(); ++i)
+    {
+        for (uint j = 0; j < prev[i].size(); ++j)
+        {
+            if(!prev[i][j].ischecked()) 
+            {
+                unchecked.push_back(prev[i][j]);
+            }
+        }
+    }
+
+    //TODO populate the unchecked vector
+
+    return atleastonepairmatched;
 }
 
 template <typename T>
