@@ -172,11 +172,11 @@ string quine_mcclusky(string inputs, string minterms)
         to_continue = crossmatch(curr_group, prev_group, unchecked);
     }
 
-    primeimp = simplify(unchecked);
+    primeimp = simplify(unchecked, pow(2, v_inputs.size()));
 
-    for(uint i = 0; i < primeimp.size(); ++i) 
+    for (uint i = 0; i < primeimp.size(); ++i)
     {
-        
+
         res += primeimp[i].tostring();
         res += " + ";
     }
@@ -184,8 +184,31 @@ string quine_mcclusky(string inputs, string minterms)
     return res;
 }
 
-vector<Binary> simplify(vector<Binary> unchecked) {
+vector<Binary> simplify(vector<Binary> unchecked, uint nummins)
+{
+    // TODO
+    vector<Binary> res;
+    vector<vector<Binary>> bin_counter;
+    bin_counter.resize(nummins);
 
+    for (uint u = 0; u < unchecked.size(); ++u)
+    {
+        vector<uint> tmp = unchecked[u].getinmins();
+        for (uint i = 0; i < tmp.size(); ++i)
+        {
+            bin_counter[tmp[i]].push_back(unchecked[u]);
+        }
+    }
+
+    for (uint i = 0; i < bin_counter.size(); ++i)
+    {
+        if (bin_counter[i].size() == 1)
+        {
+            res.push_back(bin_counter[i][0]);
+        }
+    }
+
+    return res;
 }
 
 bool crossmatch(
