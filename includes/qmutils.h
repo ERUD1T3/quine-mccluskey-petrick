@@ -24,5 +24,6 @@ private:
 public:
     Binary(uint binsize, uint minterm); //constructor, returns a Binary object
     string tostring();  // convert binaries to string input equivalent
+    string getbins();
     ~Binary();          // destructor, free memory allocated for Binary object
 };
