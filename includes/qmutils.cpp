@@ -13,6 +13,15 @@ Binary::Binary(uint binsize, uint minterm)
     this->bins = minterm2bin(minterm);
 }
 
+Binary::Binary(uint binsize)
+{
+    //constructor, returns a Binary object
+    this->binsize = binsize;
+    this->checked = false;
+    // this->in_minterms.push_back(minterm);
+    // this->bins = minterm2bin(minterm);
+}
+
 string Binary::tostring()
 {
     string res;
@@ -45,7 +54,7 @@ Binary::~Binary()
     // no memory to deallocate
 }
 
-string Binary::getbins()
+string &Binary::getbins()
 {
     return this->bins;
 }
@@ -78,7 +87,7 @@ bool compatible(Binary bin1, Binary bin2) // return true if bins are matcheable
         {
             ++counter;
         }
-        
+
         if (counter >= 2)
             break;
     }
@@ -86,5 +95,41 @@ bool compatible(Binary bin1, Binary bin2) // return true if bins are matcheable
     return (counter == 1) ? true : false;
 }
 
-Binary match(Binary bin1, Binary bin2) {}
+Binary match(Binary bin1, Binary bin2)
+{
+    // return a new Binary matched
+    /* Check for compatibility before calling this functions*/
+    Binary res = Binary(bin1.getsize());
+    res.getbins() = bin1.getbins();
+
+    for (uint i = 0; i < bin1.getinmins().size(); ++i)
+    {
+        res.getinmins().push_back(bin1.getinmins()[i]);
+    }
+
+    for (uint i = 0; i < bin2.getinmins().size(); ++i)
+    {
+        res.getinmins().push_back(bin2.getinmins()[i]);
+    }
+
+    for (uint c = 0; c < bin1.getbins().size(); ++c)
+    {
+        if (bin1.getbins()[c] != bin2.getbins()[c])
+        {
+            res.getbins()[c] = '-';
+        }
+    }
+    return res;
+}
+
+vector<uint> &Binary::getinmins()
+{
+    return this->in_minterms;
+}
+
 string quine_mcclusky(string inputs, string midterms) {}
+
+uint Binary::getsize()
+{
+    return this->binsize;
+}
