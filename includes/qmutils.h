@@ -5,13 +5,9 @@
 using namespace std;
 
 typedef unsigned int uint;
+#define DELIM ','
+#define DEBUG true
 
-string minterm2bin(uint minterm);
-bool compatible(Binary bin1, Binary bin2); // return true if bins are matcheable
-Binary match(Binary bin1, Binary bin2);
-string quine_mcclusky(string inputs, string midterms); // takes a number of inputs and midterms, returns reduced expression
-
-/* basic data structure for the method */
 class Binary
 {
 private:
@@ -30,3 +26,14 @@ public:
     uint getsize();
     ~Binary();          // destructor, free memory allocated for Binary object
 };
+
+
+
+string minterm2bin(uint minterm);
+bool compatible(Binary bin1, Binary bin2); // return true if bins are matcheable
+Binary match(Binary bin1, Binary bin2);
+string quine_mcclusky(string inputs, string midterms); // takes a number of inputs and midterms, returns reduced expression
+
+template <typename T>
+void parse(vector<T>& dest, string input, function<T(string)> fn);
+/* basic data structure for the method */

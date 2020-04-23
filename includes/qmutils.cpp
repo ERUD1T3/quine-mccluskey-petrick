@@ -127,7 +127,54 @@ vector<uint> &Binary::getinmins()
     return this->in_minterms;
 }
 
-string quine_mcclusky(string inputs, string midterms) {}
+string quine_mcclusky(string inputs, string minterms)
+{
+    // main functions
+    string res;
+    vector<string> v_inputs;
+    vector<uint> v_minterms;
+    vector<Binary> unchecked;
+    vector<vector<Binary>> curr_group, prev_group;
+
+    /* obtaining midterms */
+    parse<uint>(v_minterms, inputs, [](string a) -> uint { return  stoi(a);});
+
+    /* Getting inputs */
+    parse<string>(v_inputs, inputs, [](string a) -> string { return  a;});
+
+
+
+    
+    return res;
+}
+
+template <typename T>
+void parse(vector<T>& dest, string input, function<T(string)> fn) {
+    // parse input into the destination vector
+    string tmp = "";
+    for (uint i = 0; i <= input.size(); ++i)
+    {
+        if (i == input.size())
+        {
+            dest.push_back(fn(tmp));
+            tmp = "";
+            break;
+        }
+
+        if (input[i] != DELIM)
+        {
+            tmp += input[i];
+        }
+        else
+        { // delim found
+            dest.push_back(fn(tmp));
+            tmp = "";
+        }
+    }
+
+
+}
+
 
 uint Binary::getsize()
 {

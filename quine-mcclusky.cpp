@@ -4,7 +4,6 @@
 #include <string>
 #include "includes/qmutils.h"
 
-#define DEBUG true
 
 using namespace std;
 
