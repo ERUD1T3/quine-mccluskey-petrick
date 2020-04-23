@@ -127,36 +127,85 @@ vector<uint> &Binary::getinmins()
     return this->in_minterms;
 }
 
+uint Binary::getnumones()
+{
+    uint counter = 0;
+
+    for (uint c = 0; c < this->getbins().size(); ++c)
+    {
+        if (this->getbins[c] == '1')
+        {
+            ++counter;
+        }
+    }
+
+    return counter;
+}
+
 string quine_mcclusky(string inputs, string minterms)
 {
     // main functions
     string res;
     vector<string> v_inputs;
     vector<uint> v_minterms;
-    vector<Binary> unchecked;
+    vector<Binary> unchecked, primeimp;
     vector<vector<Binary>> curr_group, prev_group;
+    bool to_continue = true;
 
     /* obtaining midterms */
-    parse<uint>(v_minterms, inputs, [](string a) -> uint { return  stoi(a);});
+    parse<uint>(v_minterms, inputs, [](string a) -> uint { return stoi(a); });
 
     /* Getting inputs */
-    parse<string>(v_inputs, inputs, [](string a) -> string { return  a;});
+    parse<string>(v_inputs, inputs, [](string a) -> string { return a; });
 
+    /* build first group */
+    prev_group.resize(v_inputs.size());
+    for (uint i = 0; i < v_minterms.size(); ++i)
+    {
+        // read minterms into first group
+        Binary tmp = Binary(v_inputs.size(), v_minterms[i]);
+        prev_group[tmp.getnumones()].push_back(tmp);
+    }
 
+    while (to_continue)
+    {
+        to_continue = crossmatch(curr_group, prev_group, unchecked);
+    }
 
-    
+    primeimp = simplify(unchecked);
+
+    for(uint i = 0; i < primeimp.size(); ++i) 
+    {
+        
+        res += primeimp[i].tostring();
+        res += " + ";
+    }
+
     return res;
 }
 
+vector<Binary> simplify(vector<Binary> unchecked) {
+
+}
+
+bool crossmatch(
+    vector<vector<Binary>> &curr,
+    vector<vector<Binary>> &prev,
+    vector<Binary> &unchecked)
+{
+    // TODO
+}
+
 template <typename T>
-void parse(vector<T>& dest, string input, function<T(string)> fn) {
+void parse(vector<T> &dest, string input, T (*fn)(string))
+{
     // parse input into the destination vector
     string tmp = "";
     for (uint i = 0; i <= input.size(); ++i)
     {
         if (i == input.size())
         {
-            dest.push_back(fn(tmp));
+            dest.push_back((*fn)(tmp));
             tmp = "";
             break;
         }
@@ -167,14 +216,11 @@ void parse(vector<T>& dest, string input, function<T(string)> fn) {
         }
         else
         { // delim found
-            dest.push_back(fn(tmp));
+            dest.push_back((*fn)(tmp));
             tmp = "";
         }
     }
-
-
 }
-
 
 uint Binary::getsize()
 {

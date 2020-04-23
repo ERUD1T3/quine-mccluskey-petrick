@@ -17,7 +17,8 @@ int main(int argc, char const *argv[])
     if (DEBUG)
     {
         cout << "Testing" << endl;
-        cout << "Inputs: " << inputs << "Minterms: " << minterms << endl;
+        cout << "Inputs: " << inputs << endl;
+        cout << "Minterms: " << minterms << endl;
     }
 
     string res = quine_mcclusky(inputs, minterms);
