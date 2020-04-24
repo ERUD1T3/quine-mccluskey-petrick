@@ -513,18 +513,45 @@ string OR(string bin1, string bin2)
 PBinary PBinary::operator*(const PBinary &rhs)
 {
     // and 2 PBinaries
+    PBinary res;
+    unordered_map<string, Binary> tmp;
+
+    for (auto x : this->pbins)
+    {
+        for (auto y : rhs.pbins)
+        {
+            //TODO: eliminate duplicates
+
+            for (auto i : x.second)
+            {
+                tmp[i.first] = i.second;
+            }
+
+            for (auto j : y.second)
+            {
+                tmp[j.first] = j.second;
+            }
+
+            res.pbins[OR(x.first, y.first)] = tmp;
+
+            tmp.clear();
+        }
+    }
+
+    res.simplify();
+    return res;
 }
 
 PBinary PBinary::operator+(const PBinary &rhs)
 {
     // or 2 PBinary
     PBinary res;
-    for(auto x: this->pbins)
+    for (auto x : this->pbins)
     {
         res.pbins[x.first] = x.second;
     }
 
-    for(auto x: rhs.pbins)
+    for (auto x : rhs.pbins)
     {
         res.pbins[x.first] = x.second;
     }

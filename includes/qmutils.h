@@ -39,7 +39,8 @@ class PBinary
 {
 private:
     /* data */
-    unordered_map<string, vector<Binary>> pbins;
+    uint binsize;
+    unordered_map<string, unordered_map<string, Binary>> pbins;
 
 public:
     PBinary();
