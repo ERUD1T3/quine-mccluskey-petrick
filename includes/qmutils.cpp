@@ -4,13 +4,20 @@
 
 using namespace std;
 
+Binary::Binary()
+{
+    this->binsize = 0;
+    this->checked = false;
+    this->bins = "";
+}
+
 Binary::Binary(uint binsize, uint minterm)
 {
     //constructor, returns a Binary object
     this->binsize = binsize;
     this->checked = false;
     this->in_minterms.push_back(minterm);
-    this->bins = minterm2bin(minterm);
+    this->bins = minterm2bin(minterm, binsize);
 }
 
 Binary::Binary(uint binsize)
@@ -59,7 +66,7 @@ string &Binary::getbins()
     return this->bins;
 }
 
-string minterm2bin(uint minterm)
+string minterm2bin(uint minterm, uint size)
 {
     // convert minterms to binary
     uint copy = minterm, rem;
@@ -73,6 +80,10 @@ string minterm2bin(uint minterm)
         copy /= 2;
     } while (copy > 0);
 
+    while (res.size() < size)
+    {
+        res.insert(0, 1, '0');
+    }
     return res;
 }
 
@@ -133,7 +144,7 @@ uint Binary::getnumones()
 
     for (uint c = 0; c < this->getbins().size(); ++c)
     {
-        if (this->getbins[c] == '1')
+        if (this->getbins()[c] == '1')
         {
             ++counter;
         }
@@ -148,55 +159,116 @@ string quine_mcclusky(string inputs, string minterms)
     string res;
     vector<string> v_inputs;
     vector<uint> v_minterms;
-    vector<Binary> unchecked, primeimp;
-    vector<vector<Binary>> curr_group, prev_group;
+    unordered_map<string, Binary> unchecked, primeimp;
+    vector<vector<Binary>> prev_group;
     bool to_continue = true;
 
     /* obtaining midterms */
-    parse<uint>(v_minterms, inputs, [](string a) -> uint { return stoi(a); });
+    if (DEBUG)
+    {
+        cout << "Parsing Minterms " << endl;
+    }
+    parse<uint>(v_minterms, minterms, [](string a) -> uint { return stoi(a); });
 
     /* Getting inputs */
+    if (DEBUG)
+    {
+        cout << "Parsing inputs " << endl;
+    }
     parse<string>(v_inputs, inputs, [](string a) -> string { return a; });
 
     /* build first group */
-    prev_group.resize(v_inputs.size());
+    if (DEBUG)
+    {
+        cout << "Building Init Group" << endl;
+    }
+
+    prev_group.resize(v_inputs.size() + 1);
+
+    if (DEBUG)
+    {
+        cout << "Size of minterms " << v_minterms.size() << endl;
+        cout << "Size of inputs " << v_inputs.size() << endl;
+    }
+
     for (uint i = 0; i < v_minterms.size(); ++i)
     {
+
         // read minterms into first group
         Binary tmp = Binary(v_inputs.size(), v_minterms[i]);
+        if (DEBUG)
+        {
+            cout << "building first binaries " << i << endl;
+            cout << "bin= " << tmp.getbins() << "from " << v_minterms[i] << endl;
+        }
+
         prev_group[tmp.getnumones()].push_back(tmp);
+        if (DEBUG)
+        {
+            cout << "populating prev group" << i << endl;
+        }
     }
 
+    if (DEBUG)
+    {
+        cout << "starting crossmatching " << endl;
+        // exit(0);
+    }
+
+    // uint counter = 0;
     while (to_continue)
     {
+        vector<vector<Binary>> curr_group;
         to_continue = crossmatch(curr_group, prev_group, unchecked);
+        prev_group = curr_group;
+
+        if (DEBUG)
+        {
+            static uint counter = 0;
+            cout << "iter = " << ++counter << endl;
+            // if(counter > 5)
+            // exit(0);
+        }
     }
 
+    if (DEBUG)
+    {
+        cout << "simplifying prime implicants" << endl;
+        cout << "size of unchecked" << unchecked.size() << endl;
+    }
     primeimp = simplify(unchecked, pow(2, v_inputs.size()));
 
-    for (uint i = 0; i < primeimp.size(); ++i)
+    if (DEBUG)
+    {
+        cout << "size of prime implicants" << primeimp.size() << endl;
+        cout << "Puting results together" << endl;
+    }
+
+    for (auto x: primeimp)
     {
 
-        res += primeimp[i].tostring();
         res += " + ";
+        res += x.second.tostring();
+        
     }
 
     return res;
 }
 
-vector<Binary> simplify(vector<Binary> unchecked, uint nummins)
+unordered_map<string, Binary> simplify(unordered_map<string, Binary> unchecked, uint nummins)
 {
+
     // TODO
-    vector<Binary> res;
+    unordered_map<string, Binary> res;
     vector<vector<Binary>> bin_counter;
     bin_counter.resize(nummins);
 
-    for (uint u = 0; u < unchecked.size(); ++u)
+    for (auto u : unchecked)
     {
-        vector<uint> tmp = unchecked[u].getinmins();
+        vector<uint> tmp = u.second.getinmins();
         for (uint i = 0; i < tmp.size(); ++i)
         {
-            bin_counter[tmp[i]].push_back(unchecked[u]);
+            bin_counter[tmp[i]].push_back(u.second);
         }
     }
 
@@ -204,7 +276,7 @@ vector<Binary> simplify(vector<Binary> unchecked, uint nummins)
     {
         if (bin_counter[i].size() == 1)
         {
-            res.push_back(bin_counter[i][0]);
+            res[bin_counter[i][0].getbins()] = bin_counter[i][0];
         }
     }
 
@@ -216,14 +288,15 @@ void Binary::check()
     this->checked = true;
 }
 
-bool Binary::ischecked() {
+bool Binary::ischecked()
+{
     return this->checked;
 }
 
 bool crossmatch(
     vector<vector<Binary>> &curr,
     vector<vector<Binary>> &prev,
-    vector<Binary> &unchecked)
+    unordered_map<string, Binary> &unchecked)
 {
 
     curr.resize(prev.size() - 1);
@@ -236,10 +309,24 @@ bool crossmatch(
         {
             for (uint r2 = 0; r2 < prev[i + 1].size(); ++r2)
             {
+                if (DEBUG)
+                {
+                    cout << "bin1 " << prev[i][r1].getbins() << endl;
+                    cout << "bin2 " << prev[i + 1][r2].getbins() << endl;
+                }
                 if (compatible(prev[i][r1], prev[i + 1][r2]))
                 {
+
                     atleastonepairmatched = true;
-                    curr[i].push_back(match(prev[i][r1], prev[i + 1][r2]));
+                    Binary tmp = match(prev[i][r1], prev[i + 1][r2]);
+
+                    if (DEBUG)
+                    {
+
+                        cout << "results= " << tmp.getbins() << endl;
+                    }
+
+                    curr[i].push_back(tmp);
                     prev[i][r1].check();
                     prev[i + 1][r2].check();
                 }
@@ -247,13 +334,18 @@ bool crossmatch(
         }
     }
 
+    if (DEBUG)
+    {
+        cout << "-----------------------------------------------" << endl;
+    }
+
     for (uint i = 0; i < prev.size(); ++i)
     {
         for (uint j = 0; j < prev[i].size(); ++j)
         {
-            if(!prev[i][j].ischecked()) 
+            if (!prev[i][j].ischecked())
             {
-                unchecked.push_back(prev[i][j]);
+                unchecked[prev[i][j].getbins()] = prev[i][j];
             }
         }
     }
@@ -272,6 +364,10 @@ void parse(vector<T> &dest, string input, T (*fn)(string))
     {
         if (i == input.size())
         {
+            if (DEBUG)
+            {
+                cout << "tmp: " << tmp << endl;
+            }
             dest.push_back((*fn)(tmp));
             tmp = "";
             break;
@@ -283,6 +379,10 @@ void parse(vector<T> &dest, string input, T (*fn)(string))
         }
         else
         { // delim found
+            if (DEBUG)
+            {
+                cout << "tmp: " << tmp << endl;
+            }
             dest.push_back((*fn)(tmp));
             tmp = "";
         }
