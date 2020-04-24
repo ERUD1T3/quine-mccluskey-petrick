@@ -245,16 +245,32 @@ string quine_mcclusky(string inputs, string minterms)
         cout << "Puting results together" << endl;
     }
 
-    bool start = true;
-    for (auto x: primeimp)
+    if (primeimp.size() > 0)
     {
-        if(!start) 
+        bool start = true;
+        for (auto x : primeimp)
         {
-            res += " + ";
+            if (!start)
+            {
+                res += " + ";
+            }
+            start = false;
+            res += x.second.tostring();
         }
-        start = false;
-        res += x.second.tostring();
-        
+    }
+    else
+    {
+        bool start = true;
+        // unchecked = petrick(unchecked, pow(2, v_inputs.size()));
+        for (auto x : unchecked)
+        {
+            if (!start)
+            {
+                res += " + ";
+            }
+            start = false;
+            res += x.second.tostring();
+        }
     }
 
     return res;
@@ -309,7 +325,6 @@ unordered_map<string, Binary> petrick(unordered_map<string, Binary> unchecked, u
     /* petrik method */
     for (uint i = 0; i < primeimp_table.size(); ++i)
     {
-        
     }
 
     return res;
@@ -424,4 +439,29 @@ void parse(vector<T> &dest, string input, T (*fn)(string))
 uint Binary::getsize()
 {
     return this->binsize;
+}
+
+PBinary::PBinary(/* args */)
+{
+    
+}
+
+PBinary::~PBinary()
+{
+}
+
+void simplify()
+{
+    // clear unnecessary expression using boolean identity
+}
+
+PBinary PBinary::operator*(const PBinary &rhs)
+{
+    // and 2 PBinaries
+}
+
+
+PBinary PBinary::operator+(const PBinary &rhs)
+{
+    // or 2 PBinary
 }

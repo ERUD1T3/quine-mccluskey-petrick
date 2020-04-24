@@ -34,6 +34,22 @@ public:
     ~Binary(); // destructor, free memory allocated for Binary object
 };
 
+/* petrick binary for tabular method */
+class PBinary
+{
+private:
+    /* data */
+public:
+    PBinary(/* args */);
+    void simplify(); // clear unnecessary expression using boolean identity
+    PBinary operator*(const PBinary& rhs); // and 2 PBinaries 
+    PBinary operator+(const PBinary& rhs); // or 2 PBinary
+    ~PBinary();
+};
+
+
+
+
 string minterm2bin(uint minterm, uint size);
 bool compatible(Binary bin1, Binary bin2); // return true if bins are matcheable
 Binary match(Binary bin1, Binary bin2);

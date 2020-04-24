@@ -11,8 +11,8 @@ int main(int argc, char const *argv[])
 {
     /* code */
 
-    string inputs = "A,B,C,D",          // inputs to expression, separated by comma
-        minterms = "0,1,3,7,8,9,11,12,15"; // minterms to expression, separated by comma
+    string inputs = "A,B,C",          // inputs to expression, separated by comma
+        minterms = "0,2,3,4,5,7"; // minterms to expression, separated by comma
 
     if (DEBUG)
     {
