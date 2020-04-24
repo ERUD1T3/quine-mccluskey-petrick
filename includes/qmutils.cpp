@@ -441,9 +441,9 @@ uint Binary::getsize()
     return this->binsize;
 }
 
-PBinary::PBinary(uint binsize)
+PBinary::PBinary()
 {
-    this->binsize = binsize;
+    // implicitly defined
 }
 
 PBinary::~PBinary()
@@ -471,7 +471,6 @@ bool isdeletable(string x, string y)
                 del = false;
                 break;
             }
-            
         }
     }
 
@@ -483,15 +482,32 @@ void PBinary::simplify()
     // clear unnecessary expression using boolean identity
     for (auto pair1 : this->pbins)
     {
-        for(auto pair2: this->pbins) 
+        for (auto pair2 : this->pbins)
         {
-            if(isdeletable(pair1.first, pair2.first)) 
+            if (isdeletable(pair1.first, pair2.first))
             {
                 // delete the second
                 this->pbins.erase(pair2.first);
             }
         }
     }
+}
+
+string OR(string bin1, string bin2)
+{
+    string res;
+    for (uint i = 0; i < bin1.length(); ++i)
+    {
+        if (bin1[i] == '1' || bin2[i] == '1')
+        {
+            res += '1';
+        }
+        else // neither is '1'
+        {
+            res += '-';
+        }
+    }
+    return res;
 }
 
 PBinary PBinary::operator*(const PBinary &rhs)
@@ -502,4 +518,16 @@ PBinary PBinary::operator*(const PBinary &rhs)
 PBinary PBinary::operator+(const PBinary &rhs)
 {
     // or 2 PBinary
+    PBinary res;
+    for(auto x: this->pbins)
+    {
+        res.pbins[x.first] = x.second;
+    }
+
+    for(auto x: rhs.pbins)
+    {
+        res.pbins[x.first] = x.second;
+    }
+
+    return res;
 }
