@@ -39,6 +39,8 @@ bool compatible(Binary bin1, Binary bin2); // return true if bins are matcheable
 Binary match(Binary bin1, Binary bin2);
 string quine_mcclusky(string inputs, string midterms); // takes a number of inputs and midterms, returns reduced expression
 unordered_map<string, Binary> simplify(unordered_map<string, Binary> unchecked, uint nummins);
+unordered_map<string, Binary> petrick(unordered_map<string, Binary> unchecked, uint nummins);
+
 bool crossmatch(
     vector<vector<Binary>> &curr,
     vector<vector<Binary>> &prev,

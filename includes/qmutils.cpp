@@ -237,6 +237,7 @@ string quine_mcclusky(string inputs, string minterms)
         cout << "size of unchecked" << unchecked.size() << endl;
     }
     primeimp = simplify(unchecked, pow(2, v_inputs.size()));
+    // primeimp = petrick(unchecked, pow(2, v_inputs.size()));
 
     if (DEBUG)
     {
@@ -244,10 +245,14 @@ string quine_mcclusky(string inputs, string minterms)
         cout << "Puting results together" << endl;
     }
 
+    bool start = true;
     for (auto x: primeimp)
     {
-
-        res += " + ";
+        if(!start) 
+        {
+            res += " + ";
+        }
+        start = false;
         res += x.second.tostring();
         
     }
@@ -260,24 +265,51 @@ unordered_map<string, Binary> simplify(unordered_map<string, Binary> unchecked, 
 
     // TODO
     unordered_map<string, Binary> res;
-    vector<vector<Binary>> bin_counter;
-    bin_counter.resize(nummins);
+    vector<vector<Binary>> primeimp_table;
+    primeimp_table.resize(nummins);
 
     for (auto u : unchecked)
     {
         vector<uint> tmp = u.second.getinmins();
         for (uint i = 0; i < tmp.size(); ++i)
         {
-            bin_counter[tmp[i]].push_back(u.second);
+            primeimp_table[tmp[i]].push_back(u.second);
         }
     }
 
-    for (uint i = 0; i < bin_counter.size(); ++i)
+    for (uint i = 0; i < primeimp_table.size(); ++i)
     {
-        if (bin_counter[i].size() == 1)
+        if (primeimp_table[i].size() == 1)
         {
-            res[bin_counter[i][0].getbins()] = bin_counter[i][0];
+            res[primeimp_table[i][0].getbins()] = primeimp_table[i][0];
         }
+    }
+
+    return res;
+}
+
+unordered_map<string, Binary> petrick(unordered_map<string, Binary> unchecked, uint nummins)
+{
+
+    // TODO
+    unordered_map<string, Binary> res;
+    vector<vector<Binary>> primeimp_table;
+    primeimp_table.resize(nummins);
+
+    /* Building prime implicants table */
+    for (auto u : unchecked)
+    {
+        vector<uint> tmp = u.second.getinmins();
+        for (uint i = 0; i < tmp.size(); ++i)
+        {
+            primeimp_table[tmp[i]].push_back(u.second);
+        }
+    }
+
+    /* petrik method */
+    for (uint i = 0; i < primeimp_table.size(); ++i)
+    {
+        
     }
 
     return res;
