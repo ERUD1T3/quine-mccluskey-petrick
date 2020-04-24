@@ -481,8 +481,16 @@ bool isdeletable(string x, string y)
 void PBinary::simplify()
 {
     // clear unnecessary expression using boolean identity
-    for (auto pair : this->pbins)
+    for (auto pair1 : this->pbins)
     {
+        for(auto pair2: this->pbins) 
+        {
+            if(isdeletable(pair1.first, pair2.first)) 
+            {
+                // delete the second
+                this->pbins.erase(pair2.first);
+            }
+        }
     }
 }
 
