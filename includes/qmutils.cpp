@@ -441,25 +441,55 @@ uint Binary::getsize()
     return this->binsize;
 }
 
-PBinary::PBinary(/* args */)
+PBinary::PBinary(uint binsize)
 {
-    
+    this->binsize = binsize;
 }
 
 PBinary::~PBinary()
 {
+    // implicitly defined
 }
 
-void simplify()
+bool isdeletable(string x, string y)
+{
+
+    uint counter = 0;
+    bool del = false;
+
+    for (uint c = 0; c < x.size(); ++c)
+    {
+        if (x[c] != y[c])
+        {
+            ++counter;
+            if (x[c] == '-' && y[c] == '1')
+            {
+                del = true;
+            }
+            else //(x[c] == '1' && y[c] == '-')
+            {
+                del = false;
+                break;
+            }
+            
+        }
+    }
+
+    return (del || counter == 0);
+}
+
+void PBinary::simplify()
 {
     // clear unnecessary expression using boolean identity
+    for (auto pair : this->pbins)
+    {
+    }
 }
 
 PBinary PBinary::operator*(const PBinary &rhs)
 {
     // and 2 PBinaries
 }
-
 
 PBinary PBinary::operator+(const PBinary &rhs)
 {
