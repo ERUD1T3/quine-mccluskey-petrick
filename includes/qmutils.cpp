@@ -201,11 +201,49 @@ string simplify(unordered_map<string, Binary> unchecked)
             cout << "numbins= " << getbinnums(primeimp_table) << endl;
         }
 
+        vector<uint> allmins;
+        for (auto mt : primeimp_table)
+        {
+            allmins.push_back(mt.first);
+        }
+
         /* finding column dominance */
         for (auto mt : primeimp_table)
         {
             // if(mt.second.size() >= 2)
-            things_deleted = true;
+            for (uint bin1 = 0, bin2 = 1; bin2 < mt.second.size(); ++bin1, ++bin2)
+            {
+
+                /* find the dominated */
+                Binary a = mt.second[bin1];
+                Binary b = mt.second[bin2];
+
+                int8_t to_del = coldom(
+                    a.getinmins(),
+                    b.getinmins(),
+                    allmins);
+
+                switch (to_del)
+                {
+                case 1:
+                {
+                    mt.second.erase(mt.second.begin() + bin2);
+                    things_deleted = true;
+                    // delete b
+                }
+                break;
+                case -1:
+                {
+                    // delete a
+                    mt.second.erase(mt.second.begin() + bin1);
+                    things_deleted = true;
+                }
+                break;
+                default:
+                    // nothing to delete
+                    break;
+                }
+            }
         }
     }
 
@@ -283,7 +321,10 @@ string petrick(unordered_map<uint, vector<Binary>> &primeimp)
     return "test";
 }
 
-
+int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
+{
+    
+}
 
 uint getbinnums(unordered_map<uint, vector<Binary>> primeimp)
 {

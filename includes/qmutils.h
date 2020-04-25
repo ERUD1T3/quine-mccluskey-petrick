@@ -67,7 +67,7 @@ string simplify(unordered_map<string, Binary> unchecked);
 string petrick(unordered_map<uint, vector<Binary>>& primeimp_table);
 // uint numones(string bin); // return number of ones in binary
 uint getbinnums(unordered_map<uint, vector<Binary>> primeimp); // get max number of binary present
-
+int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain);
 bool crossmatch(
     vector<vector<Binary>> &curr,
     vector<vector<Binary>> &prev,
