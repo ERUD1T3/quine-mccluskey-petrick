@@ -10,6 +10,7 @@ using namespace std;
 typedef unsigned int uint;
 #define DELIM ','
 #define DEBUG true
+#define ALPHABET "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 class Binary
 {
@@ -62,10 +63,10 @@ bool compatible(Binary bin1, Binary bin2); // return true if bins are matcheable
 string OR(string bin1, string bin2); // ORing two binaries
 Binary match(Binary bin1, Binary bin2);
 string quine_mcclusky(string inputs, string midterms); // takes a number of inputs and midterms, returns reduced expression
-unordered_map<string, Binary> simplify(unordered_map<string, Binary> unchecked, uint nummins);
-unordered_map<string, Binary> petrick(unordered_map<string, Binary> unchecked, uint nummins);
+string simplify(unordered_map<string, Binary> unchecked);
+string petrick(unordered_map<string, Binary> unchecked, uint nummins);
 // uint numones(string bin); // return number of ones in binary
-
+uint getbinnums(unordered_map<uint, vector<Binary>> primeimp); // get max number of binary present
 
 bool crossmatch(
     vector<vector<Binary>> &curr,

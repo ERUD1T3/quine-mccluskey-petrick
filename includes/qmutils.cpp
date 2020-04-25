@@ -4,6 +4,337 @@
 
 using namespace std;
 
+string quine_mcclusky(string inputs, string minterms)
+{
+    // main functions
+    string res;
+    vector<string> v_inputs;
+    vector<uint> v_minterms;
+    unordered_map<string, Binary> unchecked, primeimp;
+    vector<vector<Binary>> prev_group;
+    bool to_continue = true;
+
+    /* obtaining midterms */
+    if (DEBUG)
+    {
+        cout << "Parsing Minterms " << endl;
+    }
+    parse<uint>(v_minterms, minterms, [](string a) -> uint { return stoi(a); });
+
+    /* Getting inputs */
+    if (DEBUG)
+    {
+        cout << "Parsing inputs " << endl;
+    }
+    parse<string>(v_inputs, inputs, [](string a) -> string { return a; });
+
+    /* build first group */
+    if (DEBUG)
+    {
+        cout << "Building Init Group" << endl;
+    }
+
+    prev_group.resize(v_inputs.size() + 1);
+
+    if (DEBUG)
+    {
+        cout << "Size of minterms " << v_minterms.size() << endl;
+        cout << "Size of inputs " << v_inputs.size() << endl;
+    }
+
+    for (uint i = 0; i < v_minterms.size(); ++i)
+    {
+
+        // read minterms into first group
+        Binary tmp = Binary(v_inputs.size(), v_minterms[i]);
+        if (DEBUG)
+        {
+            cout << "building first binaries " << i << endl;
+            cout << "bin= " << tmp.getbins() << "from " << v_minterms[i] << endl;
+        }
+
+        prev_group[tmp.getnumones()].push_back(tmp);
+        if (DEBUG)
+        {
+            cout << "populating prev group" << i << endl;
+        }
+    }
+
+    if (DEBUG)
+    {
+        cout << "starting crossmatching " << endl;
+        // exit(0);
+    }
+
+    // uint counter = 0;
+    while (to_continue)
+    {
+        vector<vector<Binary>> curr_group;
+        to_continue = crossmatch(curr_group, prev_group, unchecked);
+        prev_group = curr_group;
+
+        if (DEBUG)
+        {
+            static uint counter = 0;
+            cout << "iter = " << ++counter << endl;
+            // if(counter > 5)
+            // exit(0);
+        }
+    }
+
+    if (DEBUG)
+    {
+        cout << "simplifying prime implicants" << endl;
+        cout << "size of unchecked" << unchecked.size() << endl;
+    }
+    // primeimp = simplify(unchecked, pow(2, v_inputs.size()));
+    // // primeimp = petrick(unchecked, pow(2, v_inputs.size()));
+
+    // if (DEBUG)
+    // {
+    //     cout << "size of prime implicants" << primeimp.size() << endl;
+    //     cout << "Puting results together" << endl;
+    // }
+
+    // if (primeimp.size() > 0)
+    // {
+    //     bool start = true;
+    //     for (auto x : primeimp)
+    //     {
+    //         if (!start)
+    //         {
+    //             res += " + ";
+    //         }
+    //         start = false;
+    //         res += x.second.tostring();
+    //     }
+    // }
+    // else
+    // {
+    //     bool start = true;
+    //     // unchecked = petrick(unchecked, pow(2, v_inputs.size()));
+    //     for (auto x : unchecked)
+    //     {
+    //         if (!start)
+    //         {
+    //             res += " + ";
+    //         }
+    //         start = false;
+    //         res += x.second.tostring();
+    //     }
+    // }
+
+    res = simplify(unchecked);
+    // res = petrick(unchecked);
+
+    return res;
+}
+
+string simplify(unordered_map<string, Binary> unchecked)
+{
+
+    // simplify unchecked expression by capturing distinguished rows
+    string res;
+    unordered_map<uint, vector<Binary>> primeimp_table;
+    vector<uint> to_del;
+    // primeimp_table.resize(nummins);
+
+    for (auto u : unchecked)
+    {
+        vector<uint> tmp = u.second.getinmins();
+        for (uint i = 0; i < tmp.size(); ++i)
+        {
+            primeimp_table[tmp[i]].push_back(u.second);
+        }
+    }
+
+    if (DEBUG)
+    {
+        cout << "built prime table, size = " << primeimp_table.size() << endl;
+    }
+
+    bool start = true;
+    // vector<uint> mt_to_erase;
+
+    // while (!primeimp_table.empty())
+    // {
+
+    /* finding essential prime implicants  */
+    for (auto mt : primeimp_table)
+    {
+        if (DEBUG)
+        {
+            cout << "minterm = " << mt.first << endl;
+            cout << "element pres = " << mt.second.size() << endl;
+        }
+        // finding essential prime implicants
+        if (mt.second.size() == 1)
+        {
+            if (!start)
+            {
+                res += " + ";
+            }
+            start = false;
+            // res[primeimp_table[i][0].getbins()] = primeimp_table[i][0];
+            res += mt.second[0].tostring();
+
+            for (uint i = 0; i < mt.second[0].getinmins().size(); ++i)
+            {
+                // deleting all minterms involved in essential prime imps
+                if (DEBUG)
+                {
+                    cout << "in min = " << mt.second[0].getinmins()[i] << endl;
+                }
+
+                to_del.push_back(mt.second[0].getinmins()[i]);
+            }
+        }
+        // else
+        // {
+        //     if (DEBUG)
+        //     {
+        //         cout << "size > 1" << endl;
+        //     }
+        // }
+    }
+
+    // deleting pairs
+    for(uint i = 0; i < to_del.size(); ++i)
+    {
+        primeimp_table.erase(to_del[i]);
+    }
+    
+    to_del.clear();
+
+    if (DEBUG)
+    {
+        cout << "found essential prime imp, res = " << res << endl;
+        cout << "prime table size = " << primeimp_table.size() << endl;
+    }
+
+    /* finding row dominance */
+    uint numbins = getbinnums(primeimp_table);
+
+    if (DEBUG)
+    {
+        cout << "numbins= " << numbins << endl;
+    }
+
+    for (auto mt : primeimp_table)
+    {
+        if (mt.second.size() >= numbins)
+        {
+            to_del.push_back(mt.first);
+        }
+    }
+
+    // deleting pairs
+    for(uint i = 0; i < to_del.size(); ++i)
+    {
+        primeimp_table.erase(to_del[i]);
+    }
+    
+    to_del.clear();
+
+
+    if (DEBUG)
+    {
+        cout << "Removed row dominance "<< endl;
+        cout << "prime table size = " << primeimp_table.size() << endl;
+        cout <<  "numbins= " << getbinnums(primeimp_table) << endl;
+    }
+
+    /* finding column dominance */
+    for (auto mt : primeimp_table)
+    {
+    }
+    // }
+
+    // if (primeimp.size() > 0)
+    // {
+    //     bool start = true;
+    //     for (auto x : primeimp)
+    //     {
+    //         if (!start)
+    //         {
+    //             res += " + ";
+    //         }
+    //         start = false;
+    //         res += x.second.tostring();
+    //     }
+    // }
+
+    return res;
+}
+
+uint getbinnums(unordered_map<uint, vector<Binary>> primeimp)
+{
+    uint res = 0;
+    for (auto mt : primeimp)
+    {
+        if (mt.second.size() >= res)
+        {
+            res = mt.second.size();
+        }
+    }
+
+    // return highest number of binary present
+    return res;
+}
+
+string petrick(unordered_map<string, Binary> unchecked, uint nummins)
+{
+
+    // TODO
+    unordered_map<string, Binary> res;
+    vector<vector<PBinary>> primeimp_table;
+    primeimp_table.resize(nummins);
+    uint c = unchecked.size() - 1;
+    // vector<PBinary> impls;
+
+    /* Building prime implicants table */
+    for (auto u : unchecked)
+    {
+        vector<uint> tmp = u.second.getinmins();
+        for (uint i = 0; i < tmp.size(); ++i)
+        {
+            // inserting into the position of the minterm
+            primeimp_table[tmp[i]].push_back(PBinary(unchecked.size(), c, u.second));
+        }
+    }
+
+    PBinary tmpres;
+    bool isfirst = true;
+    /* petrik method */
+
+    for (uint i = 0; i < primeimp_table.size(); ++i)
+    {
+        if (primeimp_table[i].size() > 0)
+        {
+
+            PBinary tmpres2;
+            for (uint j = 0; j < primeimp_table[i].size(); ++j)
+            {
+                tmpres2 += primeimp_table[i][j];
+            }
+
+            if (isfirst)
+            {
+                tmpres = tmpres2;
+                isfirst = false;
+            }
+            else
+            {
+                tmpres *= tmpres2;
+            }
+        }
+    }
+
+    // TODO: transition tempres to res
+
+    return "test";
+}
+
 Binary::Binary()
 {
     this->binsize = 0;
@@ -32,7 +363,6 @@ Binary::Binary(uint binsize)
 string Binary::tostring()
 {
     string res;
-    string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     for (uint c = 0; c < this->binsize; ++c)
     {
@@ -44,12 +374,12 @@ string Binary::tostring()
         if (this->bins[c] == '0')
         {
             res += '~';
-            res += alphabet[c];
+            res += ALPHABET[c];
         }
 
         if (this->bins[c] == '1')
         {
-            res += alphabet[c];
+            res += ALPHABET[c];
         }
     }
 
@@ -153,158 +483,6 @@ uint Binary::getnumones()
     return counter;
 }
 
-string quine_mcclusky(string inputs, string minterms)
-{
-    // main functions
-    string res;
-    vector<string> v_inputs;
-    vector<uint> v_minterms;
-    unordered_map<string, Binary> unchecked, primeimp;
-    vector<vector<Binary>> prev_group;
-    bool to_continue = true;
-
-    /* obtaining midterms */
-    if (DEBUG)
-    {
-        cout << "Parsing Minterms " << endl;
-    }
-    parse<uint>(v_minterms, minterms, [](string a) -> uint { return stoi(a); });
-
-    /* Getting inputs */
-    if (DEBUG)
-    {
-        cout << "Parsing inputs " << endl;
-    }
-    parse<string>(v_inputs, inputs, [](string a) -> string { return a; });
-
-    /* build first group */
-    if (DEBUG)
-    {
-        cout << "Building Init Group" << endl;
-    }
-
-    prev_group.resize(v_inputs.size() + 1);
-
-    if (DEBUG)
-    {
-        cout << "Size of minterms " << v_minterms.size() << endl;
-        cout << "Size of inputs " << v_inputs.size() << endl;
-    }
-
-    for (uint i = 0; i < v_minterms.size(); ++i)
-    {
-
-        // read minterms into first group
-        Binary tmp = Binary(v_inputs.size(), v_minterms[i]);
-        if (DEBUG)
-        {
-            cout << "building first binaries " << i << endl;
-            cout << "bin= " << tmp.getbins() << "from " << v_minterms[i] << endl;
-        }
-
-        prev_group[tmp.getnumones()].push_back(tmp);
-        if (DEBUG)
-        {
-            cout << "populating prev group" << i << endl;
-        }
-    }
-
-    if (DEBUG)
-    {
-        cout << "starting crossmatching " << endl;
-        // exit(0);
-    }
-
-    // uint counter = 0;
-    while (to_continue)
-    {
-        vector<vector<Binary>> curr_group;
-        to_continue = crossmatch(curr_group, prev_group, unchecked);
-        prev_group = curr_group;
-
-        if (DEBUG)
-        {
-            static uint counter = 0;
-            cout << "iter = " << ++counter << endl;
-            // if(counter > 5)
-            // exit(0);
-        }
-    }
-
-    if (DEBUG)
-    {
-        cout << "simplifying prime implicants" << endl;
-        cout << "size of unchecked" << unchecked.size() << endl;
-    }
-    primeimp = simplify(unchecked, pow(2, v_inputs.size()));
-    // primeimp = petrick(unchecked, pow(2, v_inputs.size()));
-
-    if (DEBUG)
-    {
-        cout << "size of prime implicants" << primeimp.size() << endl;
-        cout << "Puting results together" << endl;
-    }
-
-    if (primeimp.size() > 0)
-    {
-        bool start = true;
-        for (auto x : primeimp)
-        {
-            if (!start)
-            {
-                res += " + ";
-            }
-            start = false;
-            res += x.second.tostring();
-        }
-    }
-    else
-    {
-        bool start = true;
-        // unchecked = petrick(unchecked, pow(2, v_inputs.size()));
-        for (auto x : unchecked)
-        {
-            if (!start)
-            {
-                res += " + ";
-            }
-            start = false;
-            res += x.second.tostring();
-        }
-    }
-
-    return res;
-}
-
-unordered_map<string, Binary> simplify(unordered_map<string, Binary> unchecked, uint nummins)
-{
-
-    // TODO
-    unordered_map<string, Binary> res;
-    vector<vector<Binary>> primeimp_table;
-    primeimp_table.resize(nummins);
-
-    for (auto u : unchecked)
-    {
-        vector<uint> tmp = u.second.getinmins();
-        for (uint i = 0; i < tmp.size(); ++i)
-        {
-            primeimp_table[tmp[i]].push_back(u.second);
-        }
-    }
-
-    for (uint i = 0; i < primeimp_table.size(); ++i)
-    {
-        if (primeimp_table[i].size() == 1)
-        {
-            res[primeimp_table[i][0].getbins()] = primeimp_table[i][0];
-        }
-    }
-
-
-    return res;
-}
-
 PBinary::PBinary(uint binsize, uint pos, Binary bin)
 {
     this->binsize = binsize;
@@ -326,59 +504,6 @@ PBinary::PBinary(uint binsize, uint pos, Binary bin)
     }
 
     this->pbins[tmp][bin.getbins()] = bin;
-}
-
-unordered_map<string, Binary> petrick(unordered_map<string, Binary> unchecked, uint nummins)
-{
-
-    // TODO
-    unordered_map<string, Binary> res;
-    vector<vector<PBinary>> primeimp_table;
-    primeimp_table.resize(nummins);
-    uint c = unchecked.size() - 1;
-    // vector<PBinary> impls;
-
-    /* Building prime implicants table */
-    for (auto u : unchecked)
-    {
-        vector<uint> tmp = u.second.getinmins();
-        for (uint i = 0; i < tmp.size(); ++i)
-        {
-            // inserting into the position of the minterm
-            primeimp_table[tmp[i]].push_back(PBinary(unchecked.size(), c, u.second));
-        }
-    }
-
-    PBinary tmpres;
-    bool isfirst = true;
-    /* petrik method */
-
-    for (uint i = 0; i < primeimp_table.size(); ++i)
-    {
-        if (primeimp_table[i].size() > 0)
-        {
-            
-            PBinary tmpres2;
-            for (uint j = 0; j < primeimp_table[i].size(); ++j)
-            {
-                tmpres2 += primeimp_table[i][j];
-            }
-
-            if(isfirst)
-            {
-                tmpres = tmpres2;
-                isfirst = false;
-            }
-            else
-            {
-                tmpres *= tmpres2;
-            }
-        }
-    }
-
-    // TODO: transition tempres to res
-
-    return res;
 }
 
 void Binary::check()
@@ -612,16 +737,18 @@ void operator+=(PBinary &lhs, const PBinary &rhs)
     lhs = res;
 }
 
-
-PBinary::PBinary(uint binsize) {
+PBinary::PBinary(uint binsize)
+{
     this->binsize = binsize;
 }
 
-uint PBinary::getbinsize() {
+uint PBinary::getbinsize()
+{
     return this->binsize;
 }
 
-PBinary& PBinary::operator=(const PBinary &rhs) {
+PBinary &PBinary::operator=(const PBinary &rhs)
+{
     this->binsize = rhs.binsize;
     this->pbins = rhs.pbins;
 
