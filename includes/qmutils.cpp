@@ -301,7 +301,31 @@ unordered_map<string, Binary> simplify(unordered_map<string, Binary> unchecked, 
         }
     }
 
+
     return res;
+}
+
+PBinary::PBinary(uint binsize, uint pos, Binary bin)
+{
+    this->binsize = binsize;
+    string tmp = "";
+    for (uint i = 0; i < binsize; ++i)
+    {
+        if (i == pos)
+        {
+            tmp += "1";
+        }
+        else
+        {
+            tmp += "-";
+        }
+    }
+    if (DEBUG)
+    {
+        cout << "Pbin= " << tmp << endl;
+    }
+
+    this->pbins[tmp][bin.getbins()] = bin;
 }
 
 unordered_map<string, Binary> petrick(unordered_map<string, Binary> unchecked, uint nummins)
@@ -309,8 +333,10 @@ unordered_map<string, Binary> petrick(unordered_map<string, Binary> unchecked, u
 
     // TODO
     unordered_map<string, Binary> res;
-    vector<vector<Binary>> primeimp_table;
+    vector<vector<PBinary>> primeimp_table;
     primeimp_table.resize(nummins);
+    uint c = unchecked.size() - 1;
+    // vector<PBinary> impls;
 
     /* Building prime implicants table */
     for (auto u : unchecked)
@@ -318,14 +344,39 @@ unordered_map<string, Binary> petrick(unordered_map<string, Binary> unchecked, u
         vector<uint> tmp = u.second.getinmins();
         for (uint i = 0; i < tmp.size(); ++i)
         {
-            primeimp_table[tmp[i]].push_back(u.second);
+            // inserting into the position of the minterm
+            primeimp_table[tmp[i]].push_back(PBinary(unchecked.size(), c, u.second));
         }
     }
 
+    PBinary tmpres;
+    bool isfirst = true;
     /* petrik method */
+
     for (uint i = 0; i < primeimp_table.size(); ++i)
     {
+        if (primeimp_table[i].size() > 0)
+        {
+            
+            PBinary tmpres2;
+            for (uint j = 0; j < primeimp_table[i].size(); ++j)
+            {
+                tmpres2 += primeimp_table[i][j];
+            }
+
+            if(isfirst)
+            {
+                tmpres = tmpres2;
+                isfirst = false;
+            }
+            else
+            {
+                tmpres *= tmpres2;
+            }
+        }
     }
+
+    // TODO: transition tempres to res
 
     return res;
 }
@@ -444,6 +495,7 @@ uint Binary::getsize()
 PBinary::PBinary()
 {
     // implicitly defined
+    this->binsize = 0;
 }
 
 PBinary::~PBinary()
@@ -510,13 +562,13 @@ string OR(string bin1, string bin2)
     return res;
 }
 
-PBinary PBinary::operator*(const PBinary &rhs)
+void operator*=(PBinary &lhs, const PBinary &rhs)
 {
     // and 2 PBinaries
-    PBinary res;
+    PBinary res = PBinary(lhs.getbinsize());
     unordered_map<string, Binary> tmp;
 
-    for (auto x : this->pbins)
+    for (auto x : lhs.pbins)
     {
         for (auto y : rhs.pbins)
         {
@@ -539,14 +591,14 @@ PBinary PBinary::operator*(const PBinary &rhs)
     }
 
     res.simplify();
-    return res;
+    lhs = res;
 }
 
-PBinary PBinary::operator+(const PBinary &rhs)
+void operator+=(PBinary &lhs, const PBinary &rhs)
 {
     // or 2 PBinary
-    PBinary res;
-    for (auto x : this->pbins)
+    PBinary res = PBinary(lhs.getbinsize());
+    for (auto x : lhs.pbins)
     {
         res.pbins[x.first] = x.second;
     }
@@ -556,5 +608,22 @@ PBinary PBinary::operator+(const PBinary &rhs)
         res.pbins[x.first] = x.second;
     }
 
-    return res;
+    res.simplify();
+    lhs = res;
+}
+
+
+PBinary::PBinary(uint binsize) {
+    this->binsize = binsize;
+}
+
+uint PBinary::getbinsize() {
+    return this->binsize;
+}
+
+PBinary& PBinary::operator=(const PBinary &rhs) {
+    this->binsize = rhs.binsize;
+    this->pbins = rhs.pbins;
+
+    return *this;
 }

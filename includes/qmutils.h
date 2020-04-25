@@ -44,9 +44,14 @@ private:
 
 public:
     PBinary();
+    PBinary(uint binsize);
+    PBinary(uint binsize, uint pos, Binary bin);
     void simplify();                       // clear unnecessary expression using boolean identity
-    PBinary operator*(const PBinary &rhs); // and 2 PBinaries
-    PBinary operator+(const PBinary &rhs); // or 2 PBinary
+    friend void operator*=(PBinary &lhs, const PBinary &rhs); // and 2 PBinaries
+    friend void operator+=(PBinary &lhs, const PBinary &rhs); // or 2 PBinary
+    PBinary& operator=(const PBinary &rhs); // or 2 PBinary
+    uint getbinsize();
+    unordered_map<string, unordered_map<string, Binary>> getpbins();
     ~PBinary();
 };
 
