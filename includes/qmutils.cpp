@@ -87,45 +87,8 @@ string quine_mcclusky(string inputs, string minterms)
         cout << "simplifying prime implicants" << endl;
         cout << "size of unchecked" << unchecked.size() << endl;
     }
-    // primeimp = simplify(unchecked, pow(2, v_inputs.size()));
-    // // primeimp = petrick(unchecked, pow(2, v_inputs.size()));
-
-    // if (DEBUG)
-    // {
-    //     cout << "size of prime implicants" << primeimp.size() << endl;
-    //     cout << "Puting results together" << endl;
-    // }
-
-    // if (primeimp.size() > 0)
-    // {
-    //     bool start = true;
-    //     for (auto x : primeimp)
-    //     {
-    //         if (!start)
-    //         {
-    //             res += " + ";
-    //         }
-    //         start = false;
-    //         res += x.second.tostring();
-    //     }
-    // }
-    // else
-    // {
-    //     bool start = true;
-    //     // unchecked = petrick(unchecked, pow(2, v_inputs.size()));
-    //     for (auto x : unchecked)
-    //     {
-    //         if (!start)
-    //         {
-    //             res += " + ";
-    //         }
-    //         start = false;
-    //         res += x.second.tostring();
-    //     }
-    // }
 
     res = simplify(unchecked);
-    // res = petrick(unchecked);
 
     return res;
 }
@@ -153,153 +116,138 @@ string simplify(unordered_map<string, Binary> unchecked)
         cout << "built prime table, size = " << primeimp_table.size() << endl;
     }
 
-    bool start = true;
+    bool start = true, things_deleted = true;
     // vector<uint> mt_to_erase;
 
-    // while (!primeimp_table.empty())
-    // {
-
-    /* finding essential prime implicants  */
-    for (auto mt : primeimp_table)
+    while (!primeimp_table.empty() && things_deleted)
     {
+        things_deleted = false;
+        /* finding essential prime implicants  */
+        for (auto mt : primeimp_table)
+        {
+            if (DEBUG)
+            {
+                cout << "minterm = " << mt.first << endl;
+                cout << "element pres = " << mt.second.size() << endl;
+            }
+            // finding essential prime implicants
+            if (mt.second.size() == 1)
+            {
+                if (!start)
+                {
+                    res += " + ";
+                }
+                start = false;
+                // res[primeimp_table[i][0].getbins()] = primeimp_table[i][0];
+                res += mt.second[0].tostring();
+
+                for (uint i = 0; i < mt.second[0].getinmins().size(); ++i)
+                {
+                    // deleting all minterms involved in essential prime imps
+                    if (DEBUG)
+                    {
+                        cout << "in min = " << mt.second[0].getinmins()[i] << endl;
+                    }
+
+                    to_del.push_back(mt.second[0].getinmins()[i]);
+                }
+            }
+        }
+
+        // deleting pairs
+        for (uint i = 0; i < to_del.size(); ++i)
+        {
+            primeimp_table.erase(to_del[i]);
+            things_deleted = true;
+        }
+
+        to_del.clear();
+
         if (DEBUG)
         {
-            cout << "minterm = " << mt.first << endl;
-            cout << "element pres = " << mt.second.size() << endl;
+            cout << "found essential prime imp, res = " << res << endl;
+            cout << "prime table size = " << primeimp_table.size() << endl;
         }
-        // finding essential prime implicants
-        if (mt.second.size() == 1)
+
+        /* finding row dominance */
+        uint numbins = getbinnums(primeimp_table);
+
+        if (DEBUG)
         {
-            if (!start)
-            {
-                res += " + ";
-            }
-            start = false;
-            // res[primeimp_table[i][0].getbins()] = primeimp_table[i][0];
-            res += mt.second[0].tostring();
+            cout << "numbins= " << numbins << endl;
+        }
 
-            for (uint i = 0; i < mt.second[0].getinmins().size(); ++i)
+        for (auto mt : primeimp_table)
+        {
+            if (mt.second.size() >= numbins)
             {
-                // deleting all minterms involved in essential prime imps
-                if (DEBUG)
-                {
-                    cout << "in min = " << mt.second[0].getinmins()[i] << endl;
-                }
-
-                to_del.push_back(mt.second[0].getinmins()[i]);
+                to_del.push_back(mt.first);
             }
         }
-        // else
-        // {
-        //     if (DEBUG)
-        //     {
-        //         cout << "size > 1" << endl;
-        //     }
-        // }
-    }
 
-    // deleting pairs
-    for(uint i = 0; i < to_del.size(); ++i)
-    {
-        primeimp_table.erase(to_del[i]);
-    }
-    
-    to_del.clear();
-
-    if (DEBUG)
-    {
-        cout << "found essential prime imp, res = " << res << endl;
-        cout << "prime table size = " << primeimp_table.size() << endl;
-    }
-
-    /* finding row dominance */
-    uint numbins = getbinnums(primeimp_table);
-
-    if (DEBUG)
-    {
-        cout << "numbins= " << numbins << endl;
-    }
-
-    for (auto mt : primeimp_table)
-    {
-        if (mt.second.size() >= numbins)
+        // deleting pairs
+        for (uint i = 0; i < to_del.size(); ++i)
         {
-            to_del.push_back(mt.first);
+            primeimp_table.erase(to_del[i]);
+            things_deleted = true;
+        }
+
+        to_del.clear();
+
+        if (DEBUG)
+        {
+            cout << "Removed row dominance " << endl;
+            cout << "prime table size = " << primeimp_table.size() << endl;
+            cout << "numbins= " << getbinnums(primeimp_table) << endl;
+        }
+
+        /* finding column dominance */
+        for (auto mt : primeimp_table)
+        {
+            // if(mt.second.size() >= 2)
+            things_deleted = true;
         }
     }
 
-    // deleting pairs
-    for(uint i = 0; i < to_del.size(); ++i)
+    if (!things_deleted)
     {
-        primeimp_table.erase(to_del[i]);
+        // obtain number of midterms
+        res += petrick(primeimp_table);
     }
-    
-    to_del.clear();
-
-
-    if (DEBUG)
-    {
-        cout << "Removed row dominance "<< endl;
-        cout << "prime table size = " << primeimp_table.size() << endl;
-        cout <<  "numbins= " << getbinnums(primeimp_table) << endl;
-    }
-
-    /* finding column dominance */
-    for (auto mt : primeimp_table)
-    {
-    }
-    // }
-
-    // if (primeimp.size() > 0)
-    // {
-    //     bool start = true;
-    //     for (auto x : primeimp)
-    //     {
-    //         if (!start)
-    //         {
-    //             res += " + ";
-    //         }
-    //         start = false;
-    //         res += x.second.tostring();
-    //     }
-    // }
 
     return res;
 }
 
-uint getbinnums(unordered_map<uint, vector<Binary>> primeimp)
-{
-    uint res = 0;
-    for (auto mt : primeimp)
-    {
-        if (mt.second.size() >= res)
-        {
-            res = mt.second.size();
-        }
-    }
-
-    // return highest number of binary present
-    return res;
-}
-
-string petrick(unordered_map<string, Binary> unchecked, uint nummins)
+string petrick(unordered_map<uint, vector<Binary>> &primeimp)
 {
 
     // TODO
-    unordered_map<string, Binary> res;
+    string res;
+
     vector<vector<PBinary>> primeimp_table;
-    primeimp_table.resize(nummins);
-    uint c = unchecked.size() - 1;
+    unordered_map<string, Binary> binaries;
     // vector<PBinary> impls;
 
+    /* collect the binares */
+    for (auto u : primeimp)
+    {
+        for (uint i = 0; i < u.second.size(); ++i)
+        {
+            binaries[u.second[i].getbins] = u.second[i];
+        }
+    }
+
     /* Building prime implicants table */
-    for (auto u : unchecked)
+    for (auto u : binaries)
     {
         vector<uint> tmp = u.second.getinmins();
         for (uint i = 0; i < tmp.size(); ++i)
         {
             // inserting into the position of the minterm
-            primeimp_table[tmp[i]].push_back(PBinary(unchecked.size(), c, u.second));
+            primeimp_table[tmp[i]].push_back(
+                PBinary(binaries.size(),
+                        binaries.size() - i - 1,
+                        u.second));
         }
     }
 
@@ -333,6 +281,23 @@ string petrick(unordered_map<string, Binary> unchecked, uint nummins)
     // TODO: transition tempres to res
 
     return "test";
+}
+
+
+
+uint getbinnums(unordered_map<uint, vector<Binary>> primeimp)
+{
+    uint res = 0;
+    for (auto mt : primeimp)
+    {
+        if (mt.second.size() >= res)
+        {
+            res = mt.second.size();
+        }
+    }
+
+    // return highest number of binary present
+    return res;
 }
 
 Binary::Binary()
