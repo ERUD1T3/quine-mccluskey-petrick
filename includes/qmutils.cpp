@@ -245,6 +245,14 @@ string simplify(unordered_map<string, Binary> unchecked)
                 }
             }
         }
+
+
+        if (DEBUG)
+        {
+            cout << "Removed col dominance " << endl;
+            cout << "prime table size = " << primeimp_table.size() << endl;
+            cout << "numbins= " << getbinnums(primeimp_table) << endl;
+        }
     }
 
     if (!things_deleted)
@@ -317,13 +325,87 @@ string petrick(unordered_map<uint, vector<Binary>> &primeimp)
     }
 
     // TODO: transition tempres to res
+    unordered_map<string, Binary> minbins;
+    uint min = UINT32_MAX;
 
-    return "test";
+    for(auto x: tmpres.getpbins())
+    {
+        if(x.second.size() <= min)
+        {
+            minbins = x.second;
+        }
+    }
+
+    // min binary to add to solutions
+    for(auto i: minbins)
+    {
+        res += "+ ";
+        res += i.second.tostring();
+    }
+
+    return res;
 }
 
 int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
 {
+    bool isdiff = false;
+    int8_t res = 0;
+    uint a_counter = 0, b_counter = 0;
+    for (uint i = 0; i < domain.size(); ++i)
+    {
+        for (uint ai = 0; ai < a.size(); ++ai)
+        {
+            if (a[ai] == domain[i])
+            {
+                ++a_counter;
+            }
+        }
+
+        for (uint bi = 0; bi < b.size(); ++bi)
+        {
+            if (b[bi] == domain[i])
+            {
+                ++b_counter;
+            }
+        }
+
+        if(a_counter > b_counter && res == 0) 
+        {
+            res = 1;
+        }
+        else if(a_counter < b_counter && res == 0)
+        {
+            res = -1;
+        }   
+        else if(a_counter >= b_counter && res == -1) 
+        {
+            isdiff = true;
+        }
+        else if(a_counter <= b_counter && res == 1)
+        {
+            isdiff = true;
+        } 
+        else // a_counter == b_counter && res == 0
+        {
+            // do nothing
+        }
+
+    }
+
+    if (isdiff)
+    {
+        return 0;
+    }
     
+    if (a_counter >= b_counter )
+    {
+        return 1;
+    }
+    else // (a_counter < b_counter)
+    {
+        return -1;
+    }
+
 }
 
 uint getbinnums(unordered_map<uint, vector<Binary>> primeimp)
