@@ -279,7 +279,7 @@ string petrick(unordered_map<uint, vector<Binary>> &primeimp)
     {
         for (uint i = 0; i < u.second.size(); ++i)
         {
-            binaries[u.second[i].getbins] = u.second[i];
+            binaries[u.second[i].getbins()] = u.second[i];
         }
     }
 
@@ -346,6 +346,8 @@ string petrick(unordered_map<uint, vector<Binary>> &primeimp)
     return res;
 }
 
+
+// TODO fix issues with output
 int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
 {
     bool isdiff = false;
@@ -406,6 +408,11 @@ int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
         return -1;
     }
 
+}
+
+unordered_map<string, unordered_map<string, Binary>> PBinary::getpbins() 
+{
+    return this->pbins;
 }
 
 uint getbinnums(unordered_map<uint, vector<Binary>> primeimp)
