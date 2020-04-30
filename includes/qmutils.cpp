@@ -1,7 +1,7 @@
 // implementation of qine mcclusky utilities
 
 #include "qmutils.h"
-
+#include <algorithm>
 using namespace std;
 
 string quine_mcclusky(string inputs, string minterms)
@@ -97,7 +97,8 @@ string simplify(unordered_map<string, Binary> unchecked)
 {
 
     // simplify unchecked expression by capturing distinguished rows
-    string res;
+    string solution;
+    unordered_map<string, Binary> res;
     unordered_map<uint, vector<Binary>> primeimp_table;
     vector<uint> to_del;
     // primeimp_table.resize(nummins);
@@ -133,13 +134,9 @@ string simplify(unordered_map<string, Binary> unchecked)
             // finding essential prime implicants
             if (mt.second.size() == 1)
             {
-                if (!start)
-                {
-                    res += " + ";
-                }
-                start = false;
+
                 // res[primeimp_table[i][0].getbins()] = primeimp_table[i][0];
-                res += mt.second[0].tostring();
+                res[mt.second[0].getbins()] = mt.second[0];
 
                 for (uint i = 0; i < mt.second[0].getinmins().size(); ++i)
                 {
@@ -165,7 +162,7 @@ string simplify(unordered_map<string, Binary> unchecked)
 
         if (DEBUG)
         {
-            cout << "found essential prime imp, res = " << res << endl;
+            // cout << "found essential prime imp, res = " << solution << endl;
             cout << "prime table size = " << primeimp_table.size() << endl;
         }
 
@@ -201,13 +198,13 @@ string simplify(unordered_map<string, Binary> unchecked)
             cout << "numbins= " << getbinnums(primeimp_table) << endl;
         }
 
+        /* finding column dominance */
         vector<uint> allmins;
         for (auto mt : primeimp_table)
         {
             allmins.push_back(mt.first);
         }
 
-        /* finding column dominance */
         for (auto mt : primeimp_table)
         {
             // if(mt.second.size() >= 2)
@@ -227,7 +224,8 @@ string simplify(unordered_map<string, Binary> unchecked)
                 {
                 case 1:
                 {
-                    mt.second.erase(mt.second.begin() + bin2);
+                    primeimp_table[mt.first].erase( primeimp_table[mt.first].begin() + bin2);
+                    // mt.second.erase(mt.second.begin() + bin2);
                     things_deleted = true;
                     // delete b
                 }
@@ -235,7 +233,8 @@ string simplify(unordered_map<string, Binary> unchecked)
                 case -1:
                 {
                     // delete a
-                    mt.second.erase(mt.second.begin() + bin1);
+                    primeimp_table[mt.first].erase( primeimp_table[mt.first].begin() + bin1);
+                    // mt.second.erase(mt.second.begin() + bin1);
                     things_deleted = true;
                 }
                 break;
@@ -245,7 +244,6 @@ string simplify(unordered_map<string, Binary> unchecked)
                 }
             }
         }
-
 
         if (DEBUG)
         {
@@ -258,17 +256,24 @@ string simplify(unordered_map<string, Binary> unchecked)
     if (!things_deleted)
     {
         // obtain number of midterms
-        res += petrick(primeimp_table);
+        petrick(primeimp_table, res);
     }
 
-    return res;
+    for (auto iter : res)
+    {
+        if (!start)
+        {
+            solution += " + ";
+        }
+        start = false;
+        solution += iter.second.tostring();
+    }
+
+    return solution;
 }
 
-string petrick(unordered_map<uint, vector<Binary>> &primeimp)
+void petrick(unordered_map<uint, vector<Binary>> &primeimp, unordered_map<string, Binary> &res)
 {
-
-    // TODO
-    string res;
 
     vector<vector<PBinary>> primeimp_table;
     unordered_map<string, Binary> binaries;
@@ -328,24 +333,22 @@ string petrick(unordered_map<uint, vector<Binary>> &primeimp)
     unordered_map<string, Binary> minbins;
     uint min = UINT32_MAX;
 
-    for(auto x: tmpres.getpbins())
+    for (auto x : tmpres.getpbins())
     {
-        if(x.second.size() <= min)
+        if (x.second.size() <= min)
         {
             minbins = x.second;
         }
     }
 
     // min binary to add to solutions
-    for(auto i: minbins)
+    for (auto i : minbins)
     {
-        res += "+ ";
-        res += i.second.tostring();
+        res[i.second.getbins()] = i.second;
     }
 
-    return res;
+    // return res;
 }
-
 
 // TODO fix issues with output
 int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
@@ -371,35 +374,34 @@ int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
             }
         }
 
-        if(a_counter > b_counter && res == 0) 
+        if (a_counter > b_counter && res == 0)
         {
             res = 1;
         }
-        else if(a_counter < b_counter && res == 0)
+        else if (a_counter < b_counter && res == 0)
         {
             res = -1;
-        }   
-        else if(a_counter >= b_counter && res == -1) 
+        }
+        else if (a_counter >= b_counter && res == -1)
         {
             isdiff = true;
         }
-        else if(a_counter <= b_counter && res == 1)
+        else if (a_counter <= b_counter && res == 1)
         {
             isdiff = true;
-        } 
+        }
         else // a_counter == b_counter && res == 0
         {
             // do nothing
         }
-
     }
 
     if (isdiff)
     {
         return 0;
     }
-    
-    if (a_counter >= b_counter )
+
+    if (a_counter >= b_counter)
     {
         return 1;
     }
@@ -407,10 +409,9 @@ int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
     {
         return -1;
     }
-
 }
 
-unordered_map<string, unordered_map<string, Binary>> PBinary::getpbins() 
+unordered_map<string, unordered_map<string, Binary>> PBinary::getpbins()
 {
     return this->pbins;
 }
