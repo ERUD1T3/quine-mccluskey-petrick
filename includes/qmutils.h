@@ -62,8 +62,8 @@ bool compatible(Binary bin1, Binary bin2); // return true if bins are matcheable
 
 string OR(string bin1, string bin2); // ORing two binaries
 Binary match(Binary bin1, Binary bin2);
-string quine_mcclusky(string inputs, string midterms); // takes a number of inputs and midterms, returns reduced expression
-string simplify(unordered_map<string, Binary> unchecked);
+string quine_mcclusky(string inputs, string midterms, string dontcare); // takes a number of inputs and midterms, returns reduced expression
+string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare);
 void petrick(unordered_map<uint, vector<Binary>> &primeimp_table, unordered_map<string, Binary> &res);
 // uint numones(string bin); // return number of ones in binary
 uint getbinnums(unordered_map<uint, vector<Binary>> primeimp);      // get max number of binary present

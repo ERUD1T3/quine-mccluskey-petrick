@@ -4,12 +4,13 @@
 #include <algorithm>
 using namespace std;
 
-string quine_mcclusky(string inputs, string minterms)
+string quine_mcclusky(string inputs, string minterms, string dontcare)
 {
     // main functions
     string res;
     vector<string> v_inputs;
     vector<uint> v_minterms;
+    vector<uint> v_dontcare;
     unordered_map<string, Binary> unchecked, primeimp;
     vector<vector<Binary>> prev_group;
     bool to_continue = true;
@@ -19,8 +20,15 @@ string quine_mcclusky(string inputs, string minterms)
     {
         cout << "Parsing Minterms " << endl;
     }
-    parse<uint>(v_minterms, minterms, [](string a) -> uint { return stoi(a); });
-
+    if (dontcare.length() == 0)
+    {
+        parse<uint>(v_minterms, minterms, [](string a) -> uint { return stoi(a); });
+    }
+    else
+    {
+        parse<uint>(v_minterms, minterms + "," + dontcare, [](string a) -> uint { return stoi(a); });
+        parse<uint>(v_dontcare, dontcare, [](string a) -> uint { return stoi(a); });
+    }
     /* Getting inputs */
     if (DEBUG)
     {
@@ -88,12 +96,12 @@ string quine_mcclusky(string inputs, string minterms)
         cout << "size of unchecked" << unchecked.size() << endl;
     }
 
-    res = simplify(unchecked);
+    res = simplify(unchecked, v_dontcare);
 
     return res;
 }
 
-string simplify(unordered_map<string, Binary> unchecked)
+string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare)
 {
 
     // simplify unchecked expression by capturing distinguished rows
@@ -119,6 +127,16 @@ string simplify(unordered_map<string, Binary> unchecked)
 
     bool start = true, things_deleted = true;
     // vector<uint> mt_to_erase;
+
+    for (auto x : dontcare)
+        to_del.push_back(x);
+    // deleting pairs
+    for (uint i = 0; i < to_del.size(); ++i)
+    {
+        primeimp_table.erase(to_del[i]);
+    }
+
+    to_del.clear();
 
     while (!primeimp_table.empty() && things_deleted)
     {
@@ -252,6 +270,7 @@ string simplify(unordered_map<string, Binary> unchecked)
                 {
                     primeimp_table[mt.first].erase(primeimp_table[mt.first].begin() + bin2);
                     // mt.second.erase(mt.second.begin() + bin2);
+                    unchecked.erase(b.getbins());
                     things_deleted = true;
                     // delete b
                 }
@@ -261,6 +280,7 @@ string simplify(unordered_map<string, Binary> unchecked)
                     // delete a
                     primeimp_table[mt.first].erase(primeimp_table[mt.first].begin() + bin1);
                     // mt.second.erase(mt.second.begin() + bin1);
+                    unchecked.erase(a.getbins());
                     things_deleted = true;
                 }
                 break;
@@ -301,7 +321,7 @@ string simplify(unordered_map<string, Binary> unchecked)
 void petrick(unordered_map<uint, vector<Binary>> &primeimp, unordered_map<string, Binary> &res)
 {
 
-    vector<vector<PBinary>> primeimp_table;
+    unordered_map<uint, vector<PBinary>> primeimp_table;
     unordered_map<string, Binary> binaries;
     // vector<PBinary> impls;
 
@@ -317,11 +337,11 @@ void petrick(unordered_map<uint, vector<Binary>> &primeimp, unordered_map<string
     /* Building prime implicants table */
     for (auto u : binaries)
     {
-        vector<uint> tmp = u.second.getinmins();
-        for (uint i = 0; i < tmp.size(); ++i)
+        // vector<uint> tmp = u.second.getinmins();
+        for (uint i = 0; i < u.second.getinmins().size(); ++i)
         {
             // inserting into the position of the minterm
-            primeimp_table[tmp[i]].push_back(
+            primeimp_table[u.second.getinmins()[i]].push_back(
                 PBinary(binaries.size(),
                         binaries.size() - i - 1,
                         u.second));
@@ -332,15 +352,16 @@ void petrick(unordered_map<uint, vector<Binary>> &primeimp, unordered_map<string
     bool isfirst = true;
     /* petrik method */
 
-    for (uint i = 0; i < primeimp_table.size(); ++i)
+    // for (uint i = 0; i < primeimp_table.size(); ++i)
+    for (auto i : primeimp_table)
     {
-        if (primeimp_table[i].size() > 0)
+        if (i.second.size() > 0)
         {
 
             PBinary tmpres2;
-            for (uint j = 0; j < primeimp_table[i].size(); ++j)
+            for (uint j = 0; j < i.second.size(); ++j)
             {
-                tmpres2 += primeimp_table[i][j];
+                tmpres2 += i.second[j];
             }
 
             if (isfirst)
@@ -380,16 +401,19 @@ int8_t rowdom(vector<Binary> a, vector<Binary> b, unordered_map<string, Binary> 
 {
     // todo row dominance
 
-    bool isdiff = false;
-    int8_t res = 0;
+    // bool isdiff = false;
+    // int8_t res = 0;
     uint a_counter = 0, b_counter = 0;
+    bool a_incr = false, b_incr = false;
     for (auto u : unchecked)
     {
         for (uint ai = 0; ai < a.size(); ++ai)
         {
             if (a[ai].getbins() == u.first)
             {
-                ++a_counter;
+                // ++a_counter;
+                a_incr = true;
+                break;
             }
         }
 
@@ -397,59 +421,50 @@ int8_t rowdom(vector<Binary> a, vector<Binary> b, unordered_map<string, Binary> 
         {
             if (b[bi].getbins() == u.first)
             {
-                ++b_counter;
+                // ++b_counter;
+                b_incr = true;
+                break;
             }
         }
 
-        if (a_counter > b_counter && res == 0)
+        if (a_incr != b_incr)
         {
-            res = 1;
+
+            if ((a_counter > b_counter && b_incr) ||
+                (b_counter > a_counter && a_incr))
+            {
+                return 0;
+            }
         }
-        else if (a_counter < b_counter && res == 0)
-        {
-            res = -1;
-        }
-        else if (a_counter >= b_counter && res == -1)
-        {
-            isdiff = true;
-        }
-        else if (a_counter <= b_counter && res == 1)
-        {
-            isdiff = true;
-        }
-        else // a_counter == b_counter && res == 0
-        {
-            // do nothing
-        }
+
+        if (a_incr)
+            ++a_counter;
+        if (b_incr)
+            ++b_counter;
+        a_incr = false;
+        b_incr = false;
     }
 
-    if (isdiff)
-    {
-        return 0;
-    }
-
-    if (a_counter >= b_counter)
-    {
-        return 1;
-    }
-    else // (a_counter < b_counter)
-    {
-        return -1;
-    }
+    return (a_counter >= b_counter) ? 1 : -1;
 }
 
 int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
 {
-    bool isdiff = false;
-    int8_t res = 0;
+    // bool isdiff = false;
+
+    // int8_t res = 0;
     uint a_counter = 0, b_counter = 0;
+    bool a_incr = false, b_incr = false;
+
     for (uint i = 0; i < domain.size(); ++i)
     {
         for (uint ai = 0; ai < a.size(); ++ai)
         {
             if (a[ai] == domain[i])
             {
-                ++a_counter;
+                // ++a_counter;
+                a_incr = true;
+                break;
             }
         }
 
@@ -457,45 +472,31 @@ int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
         {
             if (b[bi] == domain[i])
             {
-                ++b_counter;
+                // ++b_counter;
+                b_incr = true;
+                break;
             }
         }
 
-        if (a_counter > b_counter && res == 0)
+        if (a_incr != b_incr)
         {
-            res = 1;
+
+            if ((a_counter > b_counter && b_incr) ||
+                (b_counter > a_counter && a_incr))
+            {
+                return 0;
+            }
         }
-        else if (a_counter < b_counter && res == 0)
-        {
-            res = -1;
-        }
-        else if (a_counter >= b_counter && res == -1)
-        {
-            isdiff = true;
-        }
-        else if (a_counter <= b_counter && res == 1)
-        {
-            isdiff = true;
-        }
-        else // a_counter == b_counter && res == 0
-        {
-            // do nothing
-        }
+
+        if (a_incr)
+            ++a_counter;
+        if (b_incr)
+            ++b_counter;
+        a_incr = false;
+        b_incr = false;
     }
 
-    if (isdiff)
-    {
-        return 0;
-    }
-
-    if (a_counter >= b_counter)
-    {
-        return 1;
-    }
-    else // (a_counter < b_counter)
-    {
-        return -1;
-    }
+    return (a_counter >= b_counter) ? 1 : -1;
 }
 
 unordered_map<string, unordered_map<string, Binary>> PBinary::getpbins()
