@@ -167,18 +167,44 @@ string simplify(unordered_map<string, Binary> unchecked)
         }
 
         /* finding row dominance */
-        uint numbins = getbinnums(primeimp_table);
+        // uint numbins = getbinnums(primeimp_table);
 
-        if (DEBUG)
-        {
-            cout << "numbins= " << numbins << endl;
-        }
+        // if (DEBUG)
+        // {
+        //     cout << "numbins= " << numbins << endl;
+        // }
 
-        for (auto mt : primeimp_table)
+        // for (auto mt : primeimp_table)
+        // {
+        //     if (mt.second.size() >= numbins)
+        //     {
+        //         to_del.push_back(mt.first);
+        //     }
+        // }
+
+        for (auto mt1 : primeimp_table)
         {
-            if (mt.second.size() >= numbins)
+            for (auto mt2 : primeimp_table)
             {
-                to_del.push_back(mt.first);
+                if (mt1.first != mt2.first)
+                {
+                    int8_t r_to_del = rowdom(mt1.second, mt2.second, unchecked);
+                    switch (r_to_del)
+                    {
+                    case 1:
+                    {
+                        to_del.push_back(mt1.first);
+                    }
+                    break;
+                    case -1:
+                    {
+                        to_del.push_back(mt2.first);
+                    }
+                    break;
+                    default: // no row dominance
+                        break;
+                    }
+                }
             }
         }
 
@@ -215,16 +241,16 @@ string simplify(unordered_map<string, Binary> unchecked)
                 Binary a = mt.second[bin1];
                 Binary b = mt.second[bin2];
 
-                int8_t to_del = coldom(
+                int8_t c_to_del = coldom(
                     a.getinmins(),
                     b.getinmins(),
                     allmins);
 
-                switch (to_del)
+                switch (c_to_del)
                 {
                 case 1:
                 {
-                    primeimp_table[mt.first].erase( primeimp_table[mt.first].begin() + bin2);
+                    primeimp_table[mt.first].erase(primeimp_table[mt.first].begin() + bin2);
                     // mt.second.erase(mt.second.begin() + bin2);
                     things_deleted = true;
                     // delete b
@@ -233,7 +259,7 @@ string simplify(unordered_map<string, Binary> unchecked)
                 case -1:
                 {
                     // delete a
-                    primeimp_table[mt.first].erase( primeimp_table[mt.first].begin() + bin1);
+                    primeimp_table[mt.first].erase(primeimp_table[mt.first].begin() + bin1);
                     // mt.second.erase(mt.second.begin() + bin1);
                     things_deleted = true;
                 }
@@ -350,7 +376,68 @@ void petrick(unordered_map<uint, vector<Binary>> &primeimp, unordered_map<string
     // return res;
 }
 
-// TODO fix issues with output
+int8_t rowdom(vector<Binary> a, vector<Binary> b, unordered_map<string, Binary> unchecked)
+{
+    // todo row dominance
+
+    bool isdiff = false;
+    int8_t res = 0;
+    uint a_counter = 0, b_counter = 0;
+    for (auto u : unchecked)
+    {
+        for (uint ai = 0; ai < a.size(); ++ai)
+        {
+            if (a[ai].getbins() == u.first)
+            {
+                ++a_counter;
+            }
+        }
+
+        for (uint bi = 0; bi < b.size(); ++bi)
+        {
+            if (b[bi].getbins() == u.first)
+            {
+                ++b_counter;
+            }
+        }
+
+        if (a_counter > b_counter && res == 0)
+        {
+            res = 1;
+        }
+        else if (a_counter < b_counter && res == 0)
+        {
+            res = -1;
+        }
+        else if (a_counter >= b_counter && res == -1)
+        {
+            isdiff = true;
+        }
+        else if (a_counter <= b_counter && res == 1)
+        {
+            isdiff = true;
+        }
+        else // a_counter == b_counter && res == 0
+        {
+            // do nothing
+        }
+    }
+
+    if (isdiff)
+    {
+        return 0;
+    }
+
+    if (a_counter >= b_counter)
+    {
+        return 1;
+    }
+    else // (a_counter < b_counter)
+    {
+        return -1;
+    }
+}
+
 int8_t coldom(vector<uint> a, vector<uint> b, vector<uint> domain)
 {
     bool isdiff = false;
