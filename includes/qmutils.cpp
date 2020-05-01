@@ -626,8 +626,9 @@ string Binary::tostring()
 
         if (this->bins[c] == '0')
         {
-            res += '~';
+            
             res += ALPHABET[c];
+            res += '\'';
         }
 
         if (this->bins[c] == '1')

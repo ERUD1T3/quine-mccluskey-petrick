@@ -9,7 +9,7 @@ using namespace std;
 
 typedef unsigned int uint;
 #define DELIM ','
-#define DEBUG true
+#define DEBUG false
 #define ALPHABET "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 class Binary
