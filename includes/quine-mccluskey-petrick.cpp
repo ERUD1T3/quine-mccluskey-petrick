@@ -1,9 +1,9 @@
-// implementation of qine mcclusky utilities
+// implementation of qine mccluskey utilities
 
-#include "quine-mcclusky-petrick.h"
+#include "quine-mccluskey-petrick.h"
 using namespace std;
 
-string quine_mcclusky(string inputs, string minterms, string dontcare)
+string quine_mccluskey(string inputs, string minterms, string dontcare)
 {
     // main functions
     string res;

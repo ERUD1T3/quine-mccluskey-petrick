@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "includes/quine-mcclusky-petrick.h"
+#include "includes/quine-mccluskey-petrick.h"
 
 using namespace std;
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
                     cout << "Don't Care: " << dontcare << endl;
                 }
 
-                res = quine_mcclusky(input, minterms, dontcare);
+                res = quine_mccluskey(input, minterms, dontcare);
 
                 cout << "Solution: " << res << endl;
             }
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
             cout << "Don't Care: " << dontcare << endl;
         }
 
-        string res = quine_mcclusky(input, minterms, dontcare);
+        string res = quine_mccluskey(input, minterms, dontcare);
 
         cout << "Solution: " << res << endl;
     }
