@@ -3,7 +3,7 @@
 #include "quine-mcclusky-petrick.h"
 using namespace std;
 
-string quine_mcclusky(string inputs, string minterms, string dontcare, string alphabet)
+string quine_mcclusky(string inputs, string minterms, string dontcare)
 {
     // main functions
     string res;
@@ -13,6 +13,12 @@ string quine_mcclusky(string inputs, string minterms, string dontcare, string al
     unordered_map<string, Binary> unchecked, primeimp;
     vector<vector<Binary>> prev_group;
     bool to_continue = true;
+
+    string alphabet = ""; // read from input
+
+    for (auto x : inputs)
+        if (x != '-')
+            alphabet += x;
 
     /* obtaining midterms */
     if (DEBUG)
@@ -625,7 +631,7 @@ string Binary::tostring(string alphabet)
 
         if (this->bins[c] == '0')
         {
-            
+
             res += alphabet[c];
             res += '\'';
         }

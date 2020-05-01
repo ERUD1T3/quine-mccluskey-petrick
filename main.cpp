@@ -7,8 +7,6 @@
 
 using namespace std;
 
-string alphabet = ""; // read from input
-
 int main(int argc, char **argv)
 {
     if (argc > 1) // input file present
@@ -52,20 +50,16 @@ int main(int argc, char **argv)
                     }
                 }
 
-                for (auto x : input)
-                    if (x != '-')
-                        alphabet += x;
-
                 if (DEBUG)
                 {
                     cout << "Testing" << endl;
-                    cout << "alphabet: " << alphabet << endl;
+                    // cout << "alphabet: " << alphabet << endl;
                     cout << "Inputs: " << input << endl;
                     cout << "Minterms: " << minterms << endl;
                     cout << "Don't Care: " << dontcare << endl;
                 }
 
-                res = quine_mcclusky(input, minterms, dontcare, alphabet);
+                res = quine_mcclusky(input, minterms, dontcare);
 
                 cout << "Solution: " << res << endl;
             }
@@ -82,10 +76,6 @@ int main(int argc, char **argv)
             minterms = "0-2-3-4-5-6-7-8-9-10-11-12-13",
                dontcare = "";
 
-        for (auto x : input)
-            if (x != '-')
-                alphabet += x;
-
         if (DEBUG)
         {
             cout << "Testing" << endl;
@@ -94,7 +84,7 @@ int main(int argc, char **argv)
             cout << "Don't Care: " << dontcare << endl;
         }
 
-        string res = quine_mcclusky(input, minterms, dontcare, alphabet);
+        string res = quine_mcclusky(input, minterms, dontcare);
 
         cout << "Solution: " << res << endl;
     }
