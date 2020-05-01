@@ -184,22 +184,6 @@ string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare)
             cout << "prime table size = " << primeimp_table.size() << endl;
         }
 
-        /* finding row dominance */
-        // uint numbins = getbinnums(primeimp_table);
-
-        // if (DEBUG)
-        // {
-        //     cout << "numbins= " << numbins << endl;
-        // }
-
-        // for (auto mt : primeimp_table)
-        // {
-        //     if (mt.second.size() >= numbins)
-        //     {
-        //         to_del.push_back(mt.first);
-        //     }
-        // }
-
         for (auto mt1 : primeimp_table)
         {
             for (auto mt2 : primeimp_table)
@@ -321,7 +305,7 @@ string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare)
 void petrick(unordered_map<uint, vector<Binary>> &primeimp, unordered_map<string, Binary> &res)
 {
 
-    unordered_map<uint, vector<PBinary>> primeimp_table;
+    unordered_map<uint, vector<PBinary>> ptable;
     unordered_map<string, Binary> binaries;
     // vector<PBinary> impls;
 
@@ -335,17 +319,24 @@ void petrick(unordered_map<uint, vector<Binary>> &primeimp, unordered_map<string
     }
 
     /* Building prime implicants table */
+    uint counter = binaries.size() - 1;
     for (auto u : binaries)
     {
         // vector<uint> tmp = u.second.getinmins();
         for (uint i = 0; i < u.second.getinmins().size(); ++i)
         {
             // inserting into the position of the minterm
-            primeimp_table[u.second.getinmins()[i]].push_back(
-                PBinary(binaries.size(),
-                        binaries.size() - i - 1,
-                        u.second));
+            uint tmp = u.second.getinmins()[i];
+            if (primeimp.find(tmp) != primeimp.end())
+            {
+                ptable[tmp].push_back(
+                    PBinary(binaries.size(),
+                            counter,
+                            u.second));
+            }
         }
+
+        --counter;
     }
 
     PBinary tmpres;
@@ -353,7 +344,7 @@ void petrick(unordered_map<uint, vector<Binary>> &primeimp, unordered_map<string
     /* petrik method */
 
     // for (uint i = 0; i < primeimp_table.size(); ++i)
-    for (auto i : primeimp_table)
+    for (auto i : ptable)
     {
         if (i.second.size() > 0)
         {
@@ -385,16 +376,94 @@ void petrick(unordered_map<uint, vector<Binary>> &primeimp, unordered_map<string
         if (x.second.size() <= min)
         {
             minbins = x.second;
+            min = x.second.size();
         }
     }
 
     // min binary to add to solutions
+    if (DEBUG)
+    {
+        cout << "size of minbins" << minbins.size() << endl;
+    }
     for (auto i : minbins)
     {
         res[i.second.getbins()] = i.second;
+        if (DEBUG)
+        {
+            cout << "sol bins " << i.second.getbins() << endl;
+        }
     }
 
     // return res;
+}
+
+void PBinary::operator*=(const PBinary &rhs)
+{
+    // and 2 PBinaries
+    PBinary res = PBinary(this->getbinsize());
+    unordered_map<string, Binary> tmp;
+
+    for (auto x : this->pbins)
+    {
+        for (auto y : rhs.pbins)
+        {
+            //TODO: eliminate duplicates
+
+            for (auto i : x.second)
+            {
+                tmp[i.first] = i.second;
+            }
+
+            for (auto j : y.second)
+            {
+                tmp[j.first] = j.second;
+            }
+
+            res.pbins[OR(x.first, y.first)] = tmp;
+
+            tmp.clear();
+        }
+    }
+
+    res.simplify();
+    *this = res;
+}
+
+void PBinary::operator+=(const PBinary &rhs)
+{
+    // or 2 PBinary
+    PBinary res = PBinary(this->getbinsize());
+    for (auto x : this->pbins)
+    {
+        res.pbins[x.first] = x.second;
+    }
+
+    for (auto x : rhs.pbins)
+    {
+        res.pbins[x.first] = x.second;
+    }
+
+    res.simplify();
+    *this = res;
+}
+
+void PBinary::simplify()
+{
+    // clear unnecessary expression using boolean identity
+    for (auto pair1 : this->pbins)
+    {
+        for (auto pair2 : this->pbins)
+        {
+            if (pair1.first != pair2.first)
+            {
+                if (isdeletable(pair1.first, pair2.first))
+                {
+                    // delete the second
+                    this->pbins.erase(pair2.first);
+                }
+            }
+        }
+    }
 }
 
 int8_t rowdom(vector<Binary> a, vector<Binary> b, unordered_map<string, Binary> unchecked)
@@ -838,22 +907,6 @@ bool isdeletable(string x, string y)
     return (del || counter == 0);
 }
 
-void PBinary::simplify()
-{
-    // clear unnecessary expression using boolean identity
-    for (auto pair1 : this->pbins)
-    {
-        for (auto pair2 : this->pbins)
-        {
-            if (isdeletable(pair1.first, pair2.first))
-            {
-                // delete the second
-                this->pbins.erase(pair2.first);
-            }
-        }
-    }
-}
-
 string OR(string bin1, string bin2)
 {
     string res;
@@ -869,56 +922,6 @@ string OR(string bin1, string bin2)
         }
     }
     return res;
-}
-
-void operator*=(PBinary &lhs, const PBinary &rhs)
-{
-    // and 2 PBinaries
-    PBinary res = PBinary(lhs.getbinsize());
-    unordered_map<string, Binary> tmp;
-
-    for (auto x : lhs.pbins)
-    {
-        for (auto y : rhs.pbins)
-        {
-            //TODO: eliminate duplicates
-
-            for (auto i : x.second)
-            {
-                tmp[i.first] = i.second;
-            }
-
-            for (auto j : y.second)
-            {
-                tmp[j.first] = j.second;
-            }
-
-            res.pbins[OR(x.first, y.first)] = tmp;
-
-            tmp.clear();
-        }
-    }
-
-    res.simplify();
-    lhs = res;
-}
-
-void operator+=(PBinary &lhs, const PBinary &rhs)
-{
-    // or 2 PBinary
-    PBinary res = PBinary(lhs.getbinsize());
-    for (auto x : lhs.pbins)
-    {
-        res.pbins[x.first] = x.second;
-    }
-
-    for (auto x : rhs.pbins)
-    {
-        res.pbins[x.first] = x.second;
-    }
-
-    res.simplify();
-    lhs = res;
 }
 
 PBinary::PBinary(uint binsize)
