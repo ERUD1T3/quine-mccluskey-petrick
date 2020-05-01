@@ -8,9 +8,9 @@
 using namespace std;
 
 typedef unsigned int uint;
-#define DELIM ','
+#define DELIM '-'
 #define DEBUG false
-#define ALPHABET "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 
 class Binary
 {
@@ -25,7 +25,7 @@ public:
     Binary(uint binsize, uint minterm); //constructor, returns a Binary object
     Binary(uint binsize);
     Binary();
-    string tostring(); // convert binaries to string input equivalent
+    string tostring(string alphabet); // convert binaries to string input equivalent
     string &getbins();
     vector<uint> &getinmins();
     uint getnumones(); // return the number of ones in minterm
@@ -62,8 +62,8 @@ bool compatible(Binary bin1, Binary bin2); // return true if bins are matcheable
 
 string OR(string bin1, string bin2); // ORing two binaries
 Binary match(Binary bin1, Binary bin2);
-string quine_mcclusky(string inputs, string midterms, string dontcare); // takes a number of inputs and midterms, returns reduced expression
-string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare);
+string quine_mcclusky(string inputs, string midterms, string dontcare, string alphabet); // takes a number of inputs and midterms, returns reduced expression
+string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare, string alphabet);
 void petrick(unordered_map<uint, vector<Binary>> &primeimp_table, unordered_map<string, Binary> &res);
 // uint numones(string bin); // return number of ones in binary
 uint getbinnums(unordered_map<uint, vector<Binary>> primeimp);      // get max number of binary present

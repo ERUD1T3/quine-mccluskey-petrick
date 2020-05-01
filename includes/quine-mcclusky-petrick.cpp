@@ -1,10 +1,9 @@
 // implementation of qine mcclusky utilities
 
-#include "qmutils.h"
-#include <algorithm>
+#include "quine-mcclusky-petrick.h"
 using namespace std;
 
-string quine_mcclusky(string inputs, string minterms, string dontcare)
+string quine_mcclusky(string inputs, string minterms, string dontcare, string alphabet)
 {
     // main functions
     string res;
@@ -96,12 +95,12 @@ string quine_mcclusky(string inputs, string minterms, string dontcare)
         cout << "size of unchecked" << unchecked.size() << endl;
     }
 
-    res = simplify(unchecked, v_dontcare);
+    res = simplify(unchecked, v_dontcare, alphabet);
 
     return res;
 }
 
-string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare)
+string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare, string alphabet)
 {
 
     // simplify unchecked expression by capturing distinguished rows
@@ -296,7 +295,7 @@ string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare)
             solution += " + ";
         }
         start = false;
-        solution += iter.second.tostring();
+        solution += iter.second.tostring(alphabet);
     }
 
     return solution;
@@ -613,7 +612,7 @@ Binary::Binary(uint binsize)
     // this->bins = minterm2bin(minterm);
 }
 
-string Binary::tostring()
+string Binary::tostring(string alphabet)
 {
     string res;
 
@@ -627,13 +626,13 @@ string Binary::tostring()
         if (this->bins[c] == '0')
         {
             
-            res += ALPHABET[c];
+            res += alphabet[c];
             res += '\'';
         }
 
         if (this->bins[c] == '1')
         {
-            res += ALPHABET[c];
+            res += alphabet[c];
         }
     }
 

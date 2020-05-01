@@ -1,10 +1,10 @@
 all: build debug
 
 build:
-	g++ -Wall -ggdb -o ./bin/qm quine-mcclusky.cpp ./includes/qmutils.cpp
+	g++ -Wall -o ./bin/qmp main.cpp ./includes/quine-mcclusky-petrick.cpp
 
 run: build
-	./bin/qm
+	./bin/qmp
 
 debug:
-	g++ -std=c++11 -Wall -ggdb quine-mcclusky.cpp ./includes/qmutils.cpp
+	g++ -std=c++11 -Wall -ggdb main.cpp ./includes/quine-mcclusky-petrick.cpp
