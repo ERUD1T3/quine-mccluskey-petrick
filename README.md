@@ -1,2 +1,2 @@
-# quine-mccluskey
-repo for the coding implementation Quine-McClusky method
+# quine-mccluskey-petrick
+C++ implementation of Quine-McCluskey and Petrick's method
