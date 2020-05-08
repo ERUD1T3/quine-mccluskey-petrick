@@ -59,9 +59,19 @@ int main(int argc, char **argv)
                     cout << "Don't Care: " << dontcare << endl;
                 }
 
-                res = quine_mccluskey(input, minterms, dontcare);
+                try {
+                    res = quine_mccluskey(input, minterms, dontcare);
+                    cout << "Solution: " << res << endl;
+                }
+                catch(...) 
+                {
+                    cout << "Error: Invalid input format" << endl;
+                    cout << "format should be: inputs,minterms,dontcare," << endl;
+                    cout << "e.g.: A-B-C-D,1-3-4-5,0-7,\n" << endl;
+                }
+                
 
-                cout << "Solution: " << res << endl;
+               
             }
 
             /* finish reading input file */
