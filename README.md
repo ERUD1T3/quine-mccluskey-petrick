@@ -10,7 +10,7 @@ Examples
 A-B-C-D,0-1-3-7-8-9-11-15,                                  (without dontcares)
 A-B-C-D,2-3-7-9-11-13,1-10-15,                              (with dontcares)
 ```
-**Note**: Please, keep a comma at the end of a line, one expression to reduce per line, "dontcares" are optional
+**Note**: Please, keep a comma at the end of a line. One expression to reduce per line. "dontcares" are optional.
 
 # Example use case
 CLI
