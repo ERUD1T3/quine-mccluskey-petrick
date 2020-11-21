@@ -257,7 +257,17 @@ string simplify(unordered_map<string, Binary> unchecked, vector<uint> dontcare, 
                 {
                 case 1:
                 {
-                    primeimp_table[mt.first].erase(primeimp_table[mt.first].begin() + bin2);
+                    // primeimp_table[mt.first].erase(primeimp_table[mt.first].begin() + bin2);
+
+                    if((bin2 > 0) && (bin2 < primeimp_table[mt.first].size())) {
+                        primeimp_table[mt.first].erase(primeimp_table[mt.first].begin() + bin2);
+                        
+                    }
+                    // else
+                    // {
+                    //     std::cout << "ERROR: 867b29df: invalid index " << bin2 << std::endl; 
+                    // }
+                    
                     // mt.second.erase(mt.second.begin() + bin2);
                     unchecked.erase(b.getbins());
                     things_deleted = true;

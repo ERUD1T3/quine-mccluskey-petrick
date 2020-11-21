@@ -84,7 +84,7 @@ int main(int argc, char **argv)
     {
         string input = "A-B-C-D", // inputs to expression, separated by comma
             minterms = "0-2-3-4-5-6-7-8-9-10-11-12-13",
-               dontcare = "";
+            dontcare = "";
 
         if (DEBUG)
         {
